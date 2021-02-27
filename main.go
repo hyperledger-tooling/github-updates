@@ -37,12 +37,23 @@ func main() {
 	client := NewClient()
 	log.Println("Listing repositories for each organization")
 	for _, organization := range config.Organizations {
-		pRs, err := client.ListRepositories(organization.Organization.Name)
+		repos, err := client.ListRepositories(organization.Organization.Name)
 		if err != nil {
 			log.Fatalf("Err: %v", err)
 			return
 		}
-		log.Printf("List for %v is : %v", organization, pRs)
+		log.Printf("List for %v is : %v", organization, repos)
+		pRs, err := client.ListPRs(organization.Organization.Name, repos)
+		if err != nil {
+			log.Fatalf("Err: %v", err)
+			return
+		}
+		//log.Printf("List for PRs is : %v", pRs)
+		err = saveIntoFile(pRs, config.FileName)
+		if err != nil {
+			log.Fatalf("Err: %v", err)
+			return
+		}
 	}
 }
 

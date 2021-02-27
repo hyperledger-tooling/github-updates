@@ -3,6 +3,8 @@ package main
 // Configuration reads the input config file
 type Configuration struct {
 	Organizations []Organization `yaml:"organizations"`
+	DaysCount     int            `yaml:"days"`
+	FileName      string         `yaml:"filename"`
 }
 
 // Organization represents GitHub organization

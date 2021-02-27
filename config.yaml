@@ -3,3 +3,5 @@ organizations:
       name: "hyperledger"
   - organization:
       name: "hyperledger-labs"
+days: 7
+filename: "pRs.json"
