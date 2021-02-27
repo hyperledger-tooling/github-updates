@@ -1,0 +1,5 @@
+organizations:
+  - organization:
+      name: "hyperledger"
+  - organization:
+      name: "hyperledger-labs"
