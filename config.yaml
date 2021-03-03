@@ -5,3 +5,4 @@ organizations:
       name: "hyperledger-labs"
 days: 7
 filename: "pRs.json"
+prettyprintfile: "myfile.html"

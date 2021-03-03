@@ -14,7 +14,7 @@ import (
 // ClientInterface is for testing
 type ClientInterface interface {
 	ListRepositories(string) ([]string, error)
-	ListPRs(string, []string) ([]PullRequest, error)
+	ListPRs(string, []string, int) ([]PrList, error)
 }
 
 // Client is the custom handler for all requests
@@ -23,12 +23,18 @@ type Client struct {
 	Context ctx.Context
 }
 
-// PullRequest contains organization name, repository name
-//and the PRs of the repo
-type PullRequest struct {
-	Organization string               `json:"organization,omitempty"`
-	Repository   string               `json:"repository,omitempty"`
-	PRs          []github.PullRequest `json:"prs,omitempty"`
+// PullRequestDetails contains organization name
+// and PrLists
+type PullRequestDetails struct {
+	Organization string   `json:"organization,omitempty"`
+	PrRepoLists  []PrList `json:"prlists,omitempty"`
+}
+
+// PrList contains repository name
+// and the associated PRs
+type PrList struct {
+	Repository string               `json:"repository,omitempty"`
+	PRs        []github.PullRequest `json:"prs,omitempty"`
 }
 
 // NewClient creates a new instance of GitHub client
@@ -83,16 +89,15 @@ func (c Client) ListRepositories(org string) ([]string, error) {
 }
 
 // ListPRs returns the list of PRs for a given organization and repository
-func (c Client) ListPRs(org string, repos []string) ([]PullRequest, error) {
+func (c Client) ListPRs(org string, repos []string, daysCount int) ([]PrList, error) {
 	prListOptions := &github.PullRequestListOptions{
 		State: "all",
 		ListOptions: github.ListOptions{
 			PerPage: 20,
 		},
 	}
-	config := readConfiguration()
-	dayDiff := config.DaysCount * -1
-	var pullRequests []PullRequest
+	dayDiff := daysCount * -1
+	var pullRequests []PrList
 
 	for _, repo := range repos {
 		var listPullRequests []github.PullRequest
@@ -132,10 +137,9 @@ func (c Client) ListPRs(org string, repos []string) ([]PullRequest, error) {
 
 		}
 		if len(listPullRequests) != 0 {
-			pullRequestElement := PullRequest{
-				Organization: org,
-				Repository:   repo,
-				PRs:          listPullRequests,
+			pullRequestElement := PrList{
+				Repository: repo,
+				PRs:        listPullRequests,
 			}
 			pullRequests = append(pullRequests, pullRequestElement)
 		}
