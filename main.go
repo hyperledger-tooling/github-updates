@@ -1,13 +1,10 @@
 package main
 
 import (
-	"encoding/json"
+	yaml "gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
 	"os"
-	"text/template"
-
-	yaml "gopkg.in/yaml.v2"
 )
 
 const (
@@ -15,8 +12,10 @@ const (
 	ConfigFile = "CONFIG_FILE"
 	// GitHubToken env variable
 	GitHubToken = "GITHUB_TOKEN"
-	// PrettyPrintFilePath env variable
-	PrettyPrintFilePath = "PRETTY_PRINT_FILE_PATH"
+	// PrSummaryFilePath env variable
+	PrSummaryFilePath = "PR_SUMMARY_FILE_PATH"
+	// ReleaseSummaryFilePath env variable
+	ReleaseSummaryFilePath = "RELEASE_SUMMARY_FILE_PATH"
 )
 
 func readConfiguration() Configuration {
@@ -40,36 +39,100 @@ func main() {
 	config := readConfiguration()
 	client := NewClient()
 	log.Println("Listing repositories for each organization")
+
+	expectedPrList, orgReleasesList, errorOccurred := getExpectedReportsLists(config, client)
+	if errorOccurred {
+		return
+	}
+
+	// Save noteworthy PRs into a file
+	reportFilePath := getEnvOrDefault(PrSummaryFilePath, config.PrSummaryFileName)
+	templateFilePath := "static/template.html"
+	err := generateReport(expectedPrList, config, reportFilePath, templateFilePath)
+	if err != nil {
+		log.Fatalf("Failed to generate the report: %v, with template: %v. Error is: %v", reportFilePath, templateFilePath, err)
+	}
+
+	// Save releases into a file
+	reportFilePath = getEnvOrDefault(ReleaseSummaryFilePath, config.ReleaseSummaryFileName)
+	templateFilePath = "static/release-template.html"
+	err = generateReport(orgReleasesList, config, reportFilePath, templateFilePath)
+	if err != nil {
+		log.Fatalf("Err: %v", err)
+	}
+}
+
+func generateReport(v interface{}, config Configuration, reportFilePath string, templateFilePath string) error {
+
+	err := SaveIntoFile(v, config.FileName)
+	if err != nil {
+		log.Fatalf("Error in saving report as json : %v. Error is: %v", reportFilePath, err)
+		return err
+	}
+
+	err = PrettyPrint(v, reportFilePath, templateFilePath)
+	if err != nil {
+		log.Fatalf("Error in generating report html: %v. Error is: %v", reportFilePath, err)
+		return err
+	}
+
+	return nil
+}
+
+func getExpectedReportsLists(config Configuration, client ClientInterface) ([]PullRequestDetails, []ReleaseDetails, bool) {
 	var expectedPrList []PullRequestDetails
+	var orgReleasesList []ReleaseDetails
+
 	for _, organization := range config.Organizations {
+
 		repos, err := client.ListRepositories(organization.Organization.Name)
 		if err != nil {
 			log.Fatalf("Err: %v", err)
-			return
+			return nil, nil, true
 		}
 		log.Printf("List for %v is : %v", organization, repos)
-		pRs, err := client.ListPRs(organization.Organization.Name, repos, config.DaysCount)
-		if err != nil {
-			log.Fatalf("Err: %v", err)
-			return
-		}
 
-		expectedPrs := PullRequestDetails{
-			Organization: organization.Organization.Name,
-			PrRepoLists:  pRs,
+		// Pull requests
+		expectedPrs, errorOccurred := getExpectedPullRequests(client, organization, repos, config)
+		if errorOccurred {
+			return nil, nil, true
 		}
-
 		expectedPrList = append(expectedPrList, expectedPrs)
+
+		// Releases
+		releaseList, errorOccurred := getReleaseList(client, organization, repos, config)
+		if errorOccurred {
+			return nil, nil, true
+		}
+		orgReleasesList = append(orgReleasesList, releaseList)
 	}
-	err := saveIntoFile(expectedPrList, config.FileName)
+	return expectedPrList, orgReleasesList, false
+}
+
+func getReleaseList(client ClientInterface, organization Organization, repos []string, config Configuration) (ReleaseDetails, bool) {
+	orgReleases, err := client.ListReleases(organization.Organization.Name, repos, config.DaysCount)
 	if err != nil {
 		log.Fatalf("Err: %v", err)
-		return
+		return ReleaseDetails{}, true
 	}
-	err = prettyPrint(expectedPrList, getEnvOrDefault(PrettyPrintFilePath, config.PrettyPrintFileName))
+	releaseList := ReleaseDetails{
+		Organization:     organization.Organization.Name,
+		ReleaseRepoLists: orgReleases,
+	}
+	return releaseList, false
+}
+
+func getExpectedPullRequests(client ClientInterface, organization Organization, repos []string, config Configuration) (PullRequestDetails, bool) {
+	pRs, err := client.ListPRs(organization.Organization.Name, repos, config.DaysCount)
 	if err != nil {
 		log.Fatalf("Err: %v", err)
+		return PullRequestDetails{}, true
 	}
+	expectedPrs := PullRequestDetails{
+		Organization: organization.Organization.Name,
+		PrRepoLists:  pRs,
+	}
+	return expectedPrs, false
 }
 
 func getEnvOrDefault(env, defaultValue string) string {
@@ -78,27 +141,4 @@ func getEnvOrDefault(env, defaultValue string) string {
 		return value
 	}
 	return defaultValue
-}
-
-func saveIntoFile(pRs []PullRequestDetails, fileName string) error {
-	fileContents, err := json.MarshalIndent(pRs, "", "")
-	if err != nil {
-		return err
-	}
-	return ioutil.WriteFile(fileName, fileContents, 0644)
-}
-
-func prettyPrint(expectedPrs []PullRequestDetails, fileName string) error {
-
-	t, err := template.ParseFiles("static/template.html")
-	if err != nil {
-		return err
-	}
-
-	f, err := os.Create(fileName)
-	if err != nil {
-		return err
-	}
-	err = t.Execute(f, expectedPrs)
-	return err
 }

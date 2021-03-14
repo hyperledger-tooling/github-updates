@@ -6,8 +6,9 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: noteworthy-pr
-    environment: 
+    environment:
       - GITHUB_TOKEN=${GITHUB_TOKEN}
-      - PRETTY_PRINT_FILE_PATH=/app/resources/myfile.html
-    volumes: 
+      - PR_SUMMARY_FILE_PATH=/app/resources/pr-summary.html
+      - RELEASE_SUMMARY_FILE_PATH=/app/resources/release-summary.html
+    volumes:
       - .:/app/resources

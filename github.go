@@ -15,6 +15,7 @@ import (
 type ClientInterface interface {
 	ListRepositories(string) ([]string, error)
 	ListPRs(string, []string, int) ([]PrList, error)
+	ListReleases(string, []string, int) ([]ReleaseList, error)
 }
 
 // Client is the custom handler for all requests
@@ -35,6 +36,16 @@ type PullRequestDetails struct {
 type PrList struct {
 	Repository string               `json:"repository,omitempty"`
 	PRs        []github.PullRequest `json:"prs,omitempty"`
+}
+
+type ReleaseDetails struct {
+	Organization     string        `json:"organization,omitempty"`
+	ReleaseRepoLists []ReleaseList `json:"releaseList,omitempty"`
+}
+
+type ReleaseList struct {
+	Repository string                     `json:"repository,omitempty"`
+	Releases   []github.RepositoryRelease `json:"releases,omitempty"`
 }
 
 // NewClient creates a new instance of GitHub client
@@ -147,4 +158,67 @@ func (c Client) ListPRs(org string, repos []string, daysCount int) ([]PrList, er
 	}
 	return pullRequests, nil
 
+}
+
+func (c Client) ListReleases(org string, repos []string, daysCount int) ([]ReleaseList, error) {
+
+	var listReleases []ReleaseList
+	dayDiff := daysCount * -1
+
+	releaseListOptions := &github.ListOptions{PerPage: 20}
+
+	// Iterate over the repos
+	for _, repo := range repos {
+
+		var releaseList []github.RepositoryRelease
+		releaseDateReached := false
+
+		for {
+
+			releases, response, err := c.Client.Repositories.ListReleases(c.Context, org, repo, releaseListOptions)
+			if err != nil {
+				return nil, err
+			}
+			log.Printf("Response: %v", response)
+			if response.StatusCode != http.StatusOK {
+				return nil, errors.New("Could not get the response")
+			}
+
+			// For each release, break if the date is reched
+			// else add the release list to the listReleases
+			// and move to the next page
+			for _, release := range releases {
+
+				publishedDate := release.PublishedAt
+				startDate := time.Now().AddDate(0, 0, dayDiff)
+				log.Println("publishedDate", publishedDate, "start date", startDate, " if condition", publishedDate.Before(startDate))
+
+				if publishedDate.Before(startDate) {
+					releaseDateReached = true
+					break
+				}
+
+				releaseList = append(releaseList, *release)
+			}
+
+			if releaseDateReached {
+				break
+			}
+			if response.NextPage == 0 {
+				log.Println("Breaking from the loop of repositories - Releases")
+				break
+			}
+			// assign next page
+			releaseListOptions.Page = response.NextPage
+		}
+
+		if len(releaseList) != 0 {
+			releaseListElement := ReleaseList{
+				Repository: repo,
+				Releases:   releaseList,
+			}
+			listReleases = append(listReleases, releaseListElement)
+		}
+	}
+	return listReleases, nil
 }
