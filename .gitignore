@@ -20,9 +20,9 @@ go.sum
 .idea
 
 # Ignore generated files
-pRs.json
-myfile.html
+data.json
+pr-summary.html
+release-summary.html
 
 # Ignore .env file
 .env
-
