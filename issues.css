@@ -1,0 +1,46 @@
+body {
+    font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    background-color: rgb(236, 231, 231);
+}
+.content{
+    background-color: whitesmoke;
+    margin: 30px;
+}
+
+.header {
+    text-align: center;
+    padding: 20px;
+    background-color: #21adad;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+ol {
+    counter-reset: org_counter;
+    list-style: none;
+}
+
+ol ol ol ul li {
+    font-size: 16px;
+    letter-spacing: 1px;
+    margin-top: 12px;
+}
+
+
+a {
+    color: rgb(17, 4, 6);
+}
+
+.org{
+    line-height: 1;
+    letter-spacing: 1px;
+    font-size: 22px;
+}
+
+.repo {
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+    font-size: 20px;
+    /* padding: 15px; */
+    margin-top: 12px;
+}
+

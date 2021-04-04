@@ -16,6 +16,8 @@ const (
 	PrSummaryFilePath = "PR_SUMMARY_FILE_PATH"
 	// ReleaseSummaryFilePath env variable
 	ReleaseSummaryFilePath = "RELEASE_SUMMARY_FILE_PATH"
+	// Issue Summary File path env variable
+	IssueSummaryFilePath = "ISSUE_SUMMARY_FILE_PATH"
 )
 
 func readConfiguration() Configuration {
@@ -40,7 +42,7 @@ func main() {
 	client := NewClient()
 	log.Println("Listing repositories for each organization")
 
-	expectedPrList, orgReleasesList, errorOccurred := getExpectedReportsLists(config, client)
+	expectedPrList, orgReleasesList, issueList, errorOccurred := getExpectedReportsLists(config, client)
 	if errorOccurred {
 		return
 	}
@@ -57,6 +59,14 @@ func main() {
 	reportFilePath = getEnvOrDefault(ReleaseSummaryFilePath, config.ReleaseSummaryFileName)
 	templateFilePath = "static/release-template.html"
 	err = generateReport(orgReleasesList, config, reportFilePath, templateFilePath)
+	if err != nil {
+		log.Fatalf("Err: %v", err)
+	}
+
+	// Save releases into a file
+	reportFilePath = getEnvOrDefault(IssueSummaryFilePath, config.IssueSummaryFileName)
+	templateFilePath = "static/issue-template.html"
+	err = generateReport(issueList, config, reportFilePath, templateFilePath)
 	if err != nil {
 		log.Fatalf("Err: %v", err)
 	}
@@ -79,34 +89,43 @@ func generateReport(v interface{}, config Configuration, reportFilePath string, 
 	return nil
 }
 
-func getExpectedReportsLists(config Configuration, client ClientInterface) ([]PullRequestDetails, []ReleaseDetails, bool) {
+func getExpectedReportsLists(config Configuration, client ClientInterface) ([]PullRequestDetails, []ReleaseDetails, []IssueDetails, bool) {
 	var expectedPrList []PullRequestDetails
 	var orgReleasesList []ReleaseDetails
+	var issueList []IssueDetails
 
 	for _, organization := range config.Organizations {
 
 		repos, err := client.ListRepositories(organization.Organization.Name)
 		if err != nil {
 			log.Fatalf("Err: %v", err)
-			return nil, nil, true
+			return nil, nil, nil, true
 		}
 		log.Printf("List for %v is : %v", organization, repos)
 
-		// Pull requests
+		//// Pull requests
 		expectedPrs, errorOccurred := getExpectedPullRequests(client, organization, repos, config)
 		if errorOccurred {
-			return nil, nil, true
+			return nil, nil, nil, true
 		}
 		expectedPrList = append(expectedPrList, expectedPrs)
 
 		// Releases
 		releaseList, errorOccurred := getReleaseList(client, organization, repos, config)
 		if errorOccurred {
-			return nil, nil, true
+			return nil, nil, nil, true
 		}
 		orgReleasesList = append(orgReleasesList, releaseList)
+
+		//good first issues and other configured tags
+		expectedIssues, errorOccr := getIssueList(client, organization, repos, config)
+		if errorOccr {
+			return nil, nil, nil, true
+		}
+		issueList = append(issueList, expectedIssues)
+
 	}
-	return expectedPrList, orgReleasesList, false
+	return expectedPrList, orgReleasesList, issueList, false
 }
 
 func getReleaseList(client ClientInterface, organization Organization, repos []string, config Configuration) (ReleaseDetails, bool) {
@@ -120,6 +139,19 @@ func getReleaseList(client ClientInterface, organization Organization, repos []s
 		ReleaseRepoLists: orgReleases,
 	}
 	return releaseList, false
+}
+
+func getIssueList(client ClientInterface, organization Organization, repos []string, config Configuration) (IssueDetails, bool) {
+	issues, err := client.IssueWithLabels(organization.Organization.Name, repos, config.IssueTags, config.IssueCreatedHistoryDays)
+	if err != nil {
+		log.Fatalf("Err: %v", err)
+		return IssueDetails{}, true
+	}
+	issueList := IssueDetails{
+		Organization: organization.Organization.Name,
+		IssueLists:   issues,
+	}
+	return issueList, false
 }
 
 func getExpectedPullRequests(client ClientInterface, organization Organization, repos []string, config Configuration) (PullRequestDetails, bool) {
