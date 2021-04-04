@@ -26,3 +26,4 @@ release-summary.html
 
 # Ignore .env file
 .env
+.DS_Store
