@@ -16,6 +16,7 @@ type ClientInterface interface {
 	ListRepositories(string) ([]string, error)
 	ListPRs(string, []string, int) ([]PrList, error)
 	ListReleases(string, []string, int) ([]ReleaseList, error)
+	IssueWithLabels(string, []string, []string, int) ([]IssueList, error)
 }
 
 // Client is the custom handler for all requests
@@ -43,9 +44,20 @@ type ReleaseDetails struct {
 	ReleaseRepoLists []ReleaseList `json:"releaseList,omitempty"`
 }
 
+type IssueDetails struct {
+	Organization string      `json:"organization,omitempty"`
+	IssueLists   []IssueList `json:"issueLists,omitempty"`
+}
+
 type ReleaseList struct {
 	Repository string                     `json:"repository,omitempty"`
 	Releases   []github.RepositoryRelease `json:"releases,omitempty"`
+}
+
+type IssueList struct {
+	Repository string         `json:"repository,omitempty"`
+	Labels     []string       `json:"labels,omitempty"`
+	Issues     []github.Issue `json:"issues,omitempty"`
 }
 
 // NewClient creates a new instance of GitHub client
@@ -221,4 +233,70 @@ func (c Client) ListReleases(org string, repos []string, daysCount int) ([]Relea
 		}
 	}
 	return listReleases, nil
+}
+
+func (c Client) IssueWithLabels(org string, repos []string, issueLabels []string, daysCount int) ([]IssueList, error) {
+	var issueList []IssueList
+
+	dayDiff := daysCount * -1
+
+	//get open issues to be worked on and which has not been assigned to someone
+	issueListOptions := &github.IssueListByRepoOptions{
+		State:    "open",
+		Assignee: "",
+		Labels:   issueLabels,
+		ListOptions: github.ListOptions{
+			PerPage: 20,
+		},
+	}
+
+	// Iterate over the repos
+	for _, repo := range repos {
+
+		var listIssues []github.Issue
+		issueDateReached := false
+
+		for {
+
+			issues, response, err := c.Client.Issues.ListByRepo(c.Context, org, repo, issueListOptions)
+			if err != nil {
+				return nil, err
+			}
+			log.Printf("Response: %v", response)
+			if response.StatusCode != http.StatusOK {
+				return nil, errors.New("Could not get the response for fetching issues")
+			}
+			for _, issue := range issues {
+
+				publishedDate := issue.GetCreatedAt()
+				startDate := time.Now().AddDate(0, 0, dayDiff)
+				log.Println("publishedDate", publishedDate, "start date", startDate, " if condition", publishedDate.Before(startDate))
+
+				if publishedDate.Before(startDate) {
+					issueDateReached = true
+					break
+				}
+				listIssues = append(listIssues, *issue)
+
+			}
+			if issueDateReached {
+				break
+			}
+			if response.NextPage == 0 {
+				log.Println("Breaking from the loop of repositories - Issues")
+				break
+			}
+			// assign next page
+			issueListOptions.Page = response.NextPage
+		}
+		if len(listIssues) != 0 {
+			issueElement := IssueList{
+				Repository: repo,
+				Labels:     issueLabels,
+				Issues:     listIssues,
+			}
+			issueList = append(issueList, issueElement)
+		}
+	}
+	return issueList, nil
 }

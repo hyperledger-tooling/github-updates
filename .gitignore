@@ -23,6 +23,7 @@ go.sum
 data.json
 pr-summary.html
 release-summary.html
+issue-summary.html
 
 # Ignore .env file
 .env
