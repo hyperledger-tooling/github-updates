@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Releases for the last 7 days</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link rel='stylesheet' type='text/css' media='screen' href='../css/main.css'>
+</head>
+
+<body>
+    <div class="content">
+        <div class="header">
+            <h2>
+                Here are the releases for the last 7 days
+            </h2>
+        </div>
+        <ol class="org">
+            {{range .}}
+            <li>{{.Organization}}</li>
+            <ol class="repo">
+                {{range .ReleaseRepoLists}}
+                <li>{{.Repository}}</li>
+                <ol class="pr-list">
+                    {{range .Releases}}
+                    <li>
+                        <h3>{{.Name}}</h3>
+                        <div>Author: {{.Author.Login}}</div>
+                        <img src="{{.Author.AvatarURL}}"/>
+                        <div>Created At: {{.CreatedAt}}</div>
+                        <div>Published At: {{.PublishedAt}}</div>
+                        <div>Summary:</div>
+                        <p>{{.Body}}</p>
+                        <div><a href={{.HTMLURL}}>{{.TagName}}</a></div>
+                    </li>
+                    <br />
+                    {{end}}
+                </ol>
+                {{end}}
+            </ol>
+            {{end}}
+        </ol>
+    </div>
+</body>
+
+</html>
