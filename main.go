@@ -49,7 +49,7 @@ func main() {
 
 	// Save noteworthy PRs into a file
 	reportFilePath := getEnvOrDefault(PrSummaryFilePath, config.PrSummaryFileName)
-	templateFilePath := "static/template.html"
+	templateFilePath := "html/template/template.html"
 	err := generateReport(expectedPrList, config, reportFilePath, templateFilePath)
 	if err != nil {
 		log.Fatalf("Failed to generate the report: %v, with template: %v. Error is: %v", reportFilePath, templateFilePath, err)
@@ -57,7 +57,7 @@ func main() {
 
 	// Save releases into a file
 	reportFilePath = getEnvOrDefault(ReleaseSummaryFilePath, config.ReleaseSummaryFileName)
-	templateFilePath = "static/release-template.html"
+	templateFilePath = "html/template/release-template.html"
 	err = generateReport(orgReleasesList, config, reportFilePath, templateFilePath)
 	if err != nil {
 		log.Fatalf("Err: %v", err)
@@ -65,7 +65,7 @@ func main() {
 
 	// Save releases into a file
 	reportFilePath = getEnvOrDefault(IssueSummaryFilePath, config.IssueSummaryFileName)
-	templateFilePath = "static/issue-template.html"
+	templateFilePath = "html/template/issue-template.html"
 	err = generateReport(issueList, config, reportFilePath, templateFilePath)
 	if err != nil {
 		log.Fatalf("Err: %v", err)
