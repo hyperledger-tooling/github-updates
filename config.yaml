@@ -10,6 +10,6 @@ issue-tags:
 days: 7
 issue-created-history-days: 100
 filename: "data.json"
-pr-summary-filename: "pr-summary.html"
-release-summary-filename: "release-summary.html"
-issue-summary-filename: "issue-summary.html"
+pr-summary-filename: "html/generated/pr-summary.html"
+release-summary-filename: "html/generated/release-summary.html"
+issue-summary-filename: "html/generated/issue-summary.html"

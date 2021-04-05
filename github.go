@@ -242,9 +242,10 @@ func (c Client) IssueWithLabels(org string, repos []string, issueLabels []string
 
 	//get open issues to be worked on and which has not been assigned to someone
 	issueListOptions := &github.IssueListByRepoOptions{
-		State:    "open",
-		Assignee: "",
-		Labels:   issueLabels,
+		State:     "open",
+		Assignee:  "",
+		Sort:      "created",
+		Direction: "desc",
 		ListOptions: github.ListOptions{
 			PerPage: 20,
 		},
@@ -276,6 +277,11 @@ func (c Client) IssueWithLabels(org string, repos []string, issueLabels []string
 					issueDateReached = true
 					break
 				}
+
+				//check if the issue contains the desired labels or not
+				if !doesIssueContainLabels(issue, issueLabels) {
+					continue
+				}
 				listIssues = append(listIssues, *issue)
 
 			}
@@ -299,4 +305,22 @@ func (c Client) IssueWithLabels(org string, repos []string, issueLabels []string
 		}
 	}
 	return issueList, nil
+}
+
+/**
+Utility function to check if the issue contains at least one of the desired labels
+*/
+func doesIssueContainLabels(issue *github.Issue, allowedLabels []string) bool {
+	if (len(issue.Labels)) == 0 {
+		return false
+	}
+
+	for _, label := range issue.Labels {
+		for _, allowedLabel := range allowedLabels {
+			if allowedLabel == *label.Name {
+				return true
+			}
+		}
+	}
+	return false
 }
