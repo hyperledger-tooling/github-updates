@@ -57,7 +57,7 @@ ol li::before {
     height: 30px;
     border-radius: 50%;
     display: inline-block;
-
+    
 }
 ol ol li::before {
     content: counter(repo-counter);
@@ -66,7 +66,7 @@ ol ol li::before {
 ol ol ol li::before {
     content: counter(pr-counter);
     background: #4fd2db;
-
+    
 }
 
 a {

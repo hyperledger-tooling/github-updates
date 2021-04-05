@@ -21,7 +21,9 @@ go.sum
 
 # Ignore generated files
 data.json
-html/generated/*
+pr-summary.html
+release-summary.html
+
 # Ignore .env file
 .env
 .DS_Store

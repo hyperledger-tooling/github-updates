@@ -3,13 +3,7 @@ organizations:
       name: "hyperledger"
   - organization:
       name: "hyperledger-labs"
-# add the tags to be generated
-issue-tags:
-  - "good first issue"
-  - "help wanted"
 days: 7
-issue-created-history-days: 100
 filename: "data.json"
-pr-summary-filename: "html/generated/pr-summary.html"
-release-summary-filename: "html/generated/release-summary.html"
-issue-summary-filename: "html/generated/issue-summary.html"
+pr-summary-filename: "pr-summary.html"
+release-summary-filename: "release-summary.html"

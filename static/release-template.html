@@ -4,37 +4,35 @@
 <head>
     <meta charset='utf-8'>
     <meta http-equiv='X-UA-Compatible' content='IE=edge'>
-    <title>Issues worth your attention from the last 7 days</title>
+    <title>Releases for the last 7 days</title>
     <meta name='viewport' content='width=device-width, initial-scale=1'>
-    <link rel='stylesheet' type='text/css' media='screen' href='../css/issues.css'>
+    <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
 </head>
 
 <body>
     <div class="content">
         <div class="header">
             <h2>
-                Here are some of the noteworthy beginner issues for you from the last 7 days
+                Here are the releases for the last 7 days
             </h2>
         </div>
         <ol class="org">
             {{range .}}
-            <li style="font-size: 40px">{{.Organization}}</li>
+            <li>{{.Organization}}</li>
             <ol class="repo">
-                {{range .IssueLists}}
-                <li style="font-size: 30px">{{.Repository}}</li>
+                {{range .ReleaseRepoLists}}
+                <li>{{.Repository}}</li>
                 <ol class="pr-list">
-                    {{range .Issues}}
+                    {{range .Releases}}
                     <li>
-                        <h3><a href="{{.HTMLURL}}">{{.Number}} - {{.Title}}</a></h3>
-                        <ul>
-                        {{range .Labels}}
-                            <li class="label">{{.Name}}</li>
-                        {{end}}
-                        </ul>
-                        <div>Comments: {{.Comments}}</div>
+                        <h3>{{.Name}}</h3>
+                        <div>Author: {{.Author.Login}}</div>
+                        <img src="{{.Author.AvatarURL}}"/>
                         <div>Created At: {{.CreatedAt}}</div>
+                        <div>Published At: {{.PublishedAt}}</div>
                         <div>Summary:</div>
                         <p>{{.Body}}</p>
+                        <div><a href={{.HTMLURL}}>{{.TagName}}</a></div>
                     </li>
                     <br />
                     {{end}}
@@ -45,4 +43,5 @@
         </ol>
     </div>
 </body>
+
 </html>
