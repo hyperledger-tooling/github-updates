@@ -8,7 +8,5 @@ services:
     container_name: noteworthy-pr
     environment:
       - GITHUB_TOKEN=${GITHUB_TOKEN}
-      - PR_SUMMARY_FILE_PATH=/app/resources/pr-summary.html
-      - RELEASE_SUMMARY_FILE_PATH=/app/resources/release-summary.html
     volumes:
-      - .:/app/resources
+      - ./html/generated:/app/html/generated
