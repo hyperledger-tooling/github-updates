@@ -24,7 +24,7 @@ func readConfiguration() Configuration {
 
 	log.Println("Reading the configuration file")
 	var config Configuration
-	var configFile string = getEnvOrDefault(ConfigFile, "config.yaml")
+	var configFile = getEnvOrDefault(ConfigFile, "config.yaml")
 	fileContents, err := ioutil.ReadFile(configFile)
 	if err != nil {
 		log.Fatalf("Couldn't read the config file %v, Err: %v", configFile, err)
@@ -46,35 +46,43 @@ func main() {
 	if errorOccurred {
 		return
 	}
+	var reportFilePath, templateFilePath string
+	var err error
 
-	// Save noteworthy PRs into a file
-	reportFilePath := getEnvOrDefault(PrSummaryFilePath, config.PrSummaryFileName)
-	templateFilePath := "html/template/template.html"
-	err := generateReport(expectedPrList, config, reportFilePath, templateFilePath)
-	if err != nil {
-		log.Fatalf("Failed to generate the report: %v, with template: %v. Error is: %v", reportFilePath, templateFilePath, err)
+	if config.PullRequests.PRReportShouldRun {
+		// Save noteworthy PRs into a file
+		reportFilePath = getEnvOrDefault(PrSummaryFilePath, config.PullRequests.PRSummaryFileName)
+		templateFilePath = "html/template/template.html"
+		err = generateReport(config.PullRequests.PRDataFile, expectedPrList, reportFilePath, templateFilePath)
+		if err != nil {
+			log.Fatalf("Failed to generate the report: %v, with template: %v. Error is: %v", reportFilePath, templateFilePath, err)
+		}
 	}
 
-	// Save releases into a file
-	reportFilePath = getEnvOrDefault(ReleaseSummaryFilePath, config.ReleaseSummaryFileName)
-	templateFilePath = "html/template/release-template.html"
-	err = generateReport(orgReleasesList, config, reportFilePath, templateFilePath)
-	if err != nil {
-		log.Fatalf("Err: %v", err)
+	if config.Releases.ReleaseReportShouldRun {
+		// Save releases into a file
+		reportFilePath = getEnvOrDefault(ReleaseSummaryFilePath, config.Releases.ReleaseSummaryFileName)
+		templateFilePath = "html/template/release-template.html"
+		err = generateReport(config.Releases.ReleaseDataFile, orgReleasesList, reportFilePath, templateFilePath)
+		if err != nil {
+			log.Fatalf("Err: %v", err)
+		}
 	}
 
-	// Save releases into a file
-	reportFilePath = getEnvOrDefault(IssueSummaryFilePath, config.IssueSummaryFileName)
-	templateFilePath = "html/template/issue-template.html"
-	err = generateReport(issueList, config, reportFilePath, templateFilePath)
-	if err != nil {
-		log.Fatalf("Err: %v", err)
+	if config.Issues.IssueReportShouldRun {
+		// Save releases into a file
+		reportFilePath = getEnvOrDefault(IssueSummaryFilePath, config.Issues.IssueSummaryFileName)
+		templateFilePath = "html/template/issue-template.html"
+		err = generateReport(config.Issues.IssueDataFile, issueList, reportFilePath, templateFilePath)
+		if err != nil {
+			log.Fatalf("Err: %v", err)
+		}
 	}
 }
 
-func generateReport(v interface{}, config Configuration, reportFilePath string, templateFilePath string) error {
+func generateReport(dataFileName string, v interface{}, reportFilePath string, templateFilePath string) error {
 
-	err := SaveIntoFile(v, config.FileName)
+	err := SaveIntoFile(v, dataFileName)
 	if err != nil {
 		log.Fatalf("Error in saving report as json : %v. Error is: %v", reportFilePath, err)
 		return err
@@ -94,7 +102,7 @@ func getExpectedReportsLists(config Configuration, client ClientInterface) ([]Pu
 	var orgReleasesList []ReleaseDetails
 	var issueList []IssueDetails
 
-	for _, organization := range config.Organizations {
+	for _, organization := range config.GlobalConfiguration.Organizations {
 
 		repos, err := client.ListRepositories(organization.Organization.Name)
 		if err != nil {
@@ -118,8 +126,8 @@ func getExpectedReportsLists(config Configuration, client ClientInterface) ([]Pu
 		orgReleasesList = append(orgReleasesList, releaseList)
 
 		//good first issues and other configured tags
-		expectedIssues, errorOccr := getIssueList(client, organization, repos, config)
-		if errorOccr {
+		expectedIssues, errorOccurred := getIssueList(client, organization, repos, config)
+		if errorOccurred {
 			return nil, nil, nil, true
 		}
 		issueList = append(issueList, expectedIssues)
@@ -129,7 +137,7 @@ func getExpectedReportsLists(config Configuration, client ClientInterface) ([]Pu
 }
 
 func getReleaseList(client ClientInterface, organization Organization, repos []string, config Configuration) (ReleaseDetails, bool) {
-	orgReleases, err := client.ListReleases(organization.Organization.Name, repos, config.DaysCount)
+	orgReleases, err := client.ListReleases(organization.Organization.Name, repos, config.GlobalConfiguration.DaysCount)
 	if err != nil {
 		log.Fatalf("Err: %v", err)
 		return ReleaseDetails{}, true
@@ -142,7 +150,7 @@ func getReleaseList(client ClientInterface, organization Organization, repos []s
 }
 
 func getIssueList(client ClientInterface, organization Organization, repos []string, config Configuration) (IssueDetails, bool) {
-	issues, err := client.IssueWithLabels(organization.Organization.Name, repos, config.IssueTags, config.IssueCreatedHistoryDays)
+	issues, err := client.IssueWithLabels(organization.Organization.Name, repos, config.Issues.IssueTags, config.Issues.IssueCreatedHistoryDays)
 	if err != nil {
 		log.Fatalf("Err: %v", err)
 		return IssueDetails{}, true
@@ -155,7 +163,7 @@ func getIssueList(client ClientInterface, organization Organization, repos []str
 }
 
 func getExpectedPullRequests(client ClientInterface, organization Organization, repos []string, config Configuration) (PullRequestDetails, bool) {
-	pRs, err := client.ListPRs(organization.Organization.Name, repos, config.DaysCount)
+	pRs, err := client.ListPRs(organization.Organization.Name, repos, config.GlobalConfiguration.DaysCount)
 	if err != nil {
 		log.Fatalf("Err: %v", err)
 		return PullRequestDetails{}, true

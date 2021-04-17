@@ -2,14 +2,35 @@ package main
 
 // Configuration reads the input config file
 type Configuration struct {
-	Organizations           []Organization `yaml:"organizations"`
-	DaysCount               int            `yaml:"days"`
-	IssueTags               []string       `yaml:"issue-tags"`
-	FileName                string         `yaml:"filename"`
-	PrSummaryFileName       string         `yaml:"pr-summary-filename"`
-	ReleaseSummaryFileName  string         `yaml:"release-summary-filename"`
-	IssueSummaryFileName    string         `yaml:"issue-summary-filename"`
-	IssueCreatedHistoryDays int            `yaml:"issue-created-history-days"`
+	GlobalConfiguration GlobalConfiguration      `yaml:"global"`
+	Issues              IssueConfiguration       `yaml:"issues"`
+	PullRequests        PullRequestConfiguration `yaml:"pull-requests"`
+	Releases            ReleaseConfiguration     `yaml:"releases"`
+}
+
+type IssueConfiguration struct {
+	IssueTags               []string `yaml:"issue-tags"`
+	IssueCreatedHistoryDays int      `yaml:"created-history-days"`
+	IssueSummaryFileName    string   `yaml:"summary-filename"`
+	IssueReportShouldRun    bool     `yaml:"should-run"`
+	IssueDataFile           string   `yaml:"data-file"`
+}
+
+type PullRequestConfiguration struct {
+	PRSummaryFileName string `yaml:"summary-filename"`
+	PRReportShouldRun bool   `yaml:"should-run"`
+	PRDataFile        string `yaml:"data-file"`
+}
+
+type ReleaseConfiguration struct {
+	ReleaseSummaryFileName string `yaml:"summary-filename"`
+	ReleaseReportShouldRun bool   `yaml:"should-run"`
+	ReleaseDataFile        string `yaml:"data-file"`
+}
+
+type GlobalConfiguration struct {
+	Organizations []Organization `yaml:"organizations"`
+	DaysCount     int            `yaml:"scrape-duration-days"`
 }
 
 // Organization represents GitHub organization

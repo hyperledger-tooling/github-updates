@@ -18,7 +18,7 @@ in case of frequent API calls, default rate that GitHub allow is 60).
 
 Set the following environment variable before running the tool
 
-```
+```bash
 export GITHUB_TOKEN=<YOUR LONG PERSONAL ACCESS TOKEN HERE>
 ```
 
@@ -39,22 +39,51 @@ the configuration as long as the input `GITHUB_TOKEN` has read access.
 Pass the configuration file as below to the tool, find the comments
 next to them here
 
-```
-# Organizations from where the PRs are to be listed. Each organization
-# has to be listed as a list element.
-organizations:
-  - organization:
-      name: "hyperledger"
-  - organization:
-      name: "hyperledger-labs"
-# Number of days since when the PRs are to be queried
-days: 7
-# File where the output can be saved
-filename: "pRs.json"
-# File where the list of PRs will be dumped
-pr-summary-filename: "pr-summary.html"
-# File where release summary will be dumped
-release-summary-filename: "release-summary.html"
+```yaml
+
+# Global configuration for all runs
+global:
+  # Organizations from where the PRs, Issues and Releases are to be listed. Each organization
+  # has to be listed as a list element.
+  organizations:
+    - organization:
+        name: "hyperledger"
+    - organization:
+        name: "hyperledger-labs"
+  scrape-duration-days: 7
+
+# Config for Issues
+issue:
+  # List tags which are to be matched and scraped. An issue is selected if at least one of the tags match
+  issue-tags:
+    - "good first issue"
+    - "help wanted"
+  # Issues created in the last N days to be listed
+  created-history-days: 100
+  # Report summary file
+  summary-filename: "html/generated/issue-summary.html"
+  # Should this report run?
+  should-run: true
+  # Data file for raw output
+  data-file: "generated-data/issue-data.json"
+
+# Config for Pull Requests
+pull-requests:
+  # Report summary file
+  summary-filename: "html/generated/pr-summary.html"
+  # Should this report run?
+  should-run: true
+  # Data file for raw output
+  data-file: "generated-data/pr-data.json"
+
+# Config for Releases
+releases:
+  # Report summary file
+  summary-filename: "html/generated/release-summary.html"
+  # Should this report run?
+  should-run: true
+  # Data file for raw output
+  data-file: "generated-data/release-data.json"
 ```
 
 ## Environment
@@ -63,7 +92,7 @@ The tool accepts following environment variables in addition to
 the configuration file.
 
 
-```
+```bash
 # The html print file path for PRs
 PR_SUMMARY_FILE_PATH
 The html print file path for releases
@@ -78,13 +107,13 @@ CONFIG_FILE
 
 Prefer to run it as a container, run the following command
 
-```
+```bash
 docker-compose up
 ```
 
 You may optionally build and run the tool as
 
-```
+```bash
 go build
 ./noteworthy-prs
 ```
