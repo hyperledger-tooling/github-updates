@@ -52,7 +52,7 @@ func main() {
 	if config.PullRequests.PRReportShouldRun {
 		// Save noteworthy PRs into a file
 		reportFilePath = getEnvOrDefault(PrSummaryFilePath, config.PullRequests.PRSummaryFileName)
-		templateFilePath = "html/template/template.html"
+		templateFilePath = "html/template/pr-template.html"
 		err = generateReport(config.PullRequests.PRDataFile, expectedPrList, reportFilePath, templateFilePath)
 		if err != nil {
 			log.Fatalf("Failed to generate the report: %v, with template: %v. Error is: %v", reportFilePath, templateFilePath, err)
