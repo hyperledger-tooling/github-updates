@@ -1,15 +1,29 @@
-organizations:
-  - organization:
-      name: "hyperledger"
-  - organization:
-      name: "hyperledger-labs"
-# add the tags to be generated
-issue-tags:
-  - "good first issue"
-  - "help wanted"
-days: 7
-issue-created-history-days: 100
-filename: "data.json"
-pr-summary-filename: "html/generated/pr-summary.html"
-release-summary-filename: "html/generated/release-summary.html"
-issue-summary-filename: "html/generated/issue-summary.html"
+global:
+  organizations:
+    - organization:
+        name: "hyperledger"
+    - organization:
+        name: "hyperledger-labs"
+  scrape-duration-days: 7
+
+# Config for Issues
+issues:
+  issue-tags:
+    - "good first issue"
+    - "help wanted"
+  created-history-days: 100
+  summary-filename: "html/generated/issue-summary.html"
+  should-run: true
+  data-file: "generated-data/issue-data.json"
+
+# Config for Pull Requests
+pull-requests:
+  summary-filename: "html/generated/pr-summary.html"
+  should-run: true
+  data-file: "generated-data/pr-data.json"
+
+# Config for Releases
+releases:
+  summary-filename: "html/generated/release-summary.html"
+  should-run: true
+  data-file: "generated-data/release-data.json"

@@ -16,12 +16,12 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 noteworthy-prs
-go.sum
 .idea
 
 # Ignore generated files
 data.json
 html/generated/*
+generated-data/*.json
 # Ignore .env file
 .env
 .DS_Store
