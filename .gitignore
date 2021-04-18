@@ -16,7 +16,6 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 noteworthy-prs
-go.sum
 .idea
 
 # Ignore generated files
