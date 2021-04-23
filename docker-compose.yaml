@@ -10,3 +10,4 @@ services:
       - GITHUB_TOKEN=${GITHUB_TOKEN}
     volumes:
       - ./html/generated:/app/html/generated
+      - ./generated-data:/app/generated-data
