@@ -1,10 +1,12 @@
 package main
 
 import (
-	yaml "gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
 	"os"
+	"path"
+
+	yaml "gopkg.in/yaml.v2"
 )
 
 const (
@@ -46,6 +48,7 @@ func main() {
 	if errorOccurred {
 		return
 	}
+	externalPRList, externalReleaseList, externalIssueList := getExternalReports(config, expectedPrList, orgReleasesList, issueList)
 	var reportFilePath, templateFilePath string
 	var err error
 
@@ -57,6 +60,11 @@ func main() {
 		if err != nil {
 			log.Fatalf("Failed to generate the report: %v, with template: %v. Error is: %v", reportFilePath, templateFilePath, err)
 		}
+		err = generateExternalPR(config.PullRequests.PRExternalTemplate, externalPRList)
+		if err != nil {
+			log.Fatalf("Failed to generate the report: %v, with template: %v. Error is: %v",
+				config.PullRequests.PRExternalTemplate.Output, config.PullRequests.PRExternalTemplate.Input, err)
+		}
 	}
 
 	if config.Releases.ReleaseReportShouldRun {
@@ -66,6 +74,11 @@ func main() {
 		err = generateReport(config.Releases.ReleaseDataFile, orgReleasesList, reportFilePath, templateFilePath)
 		if err != nil {
 			log.Fatalf("Err: %v", err)
+		}
+		err = generateExternalRelease(config.Releases.ReleaseExternalTemplate, externalReleaseList)
+		if err != nil {
+			log.Fatalf("Failed to generate the report: %v, with template: %v. Error is: %v",
+				config.Releases.ReleaseExternalTemplate.Output, config.Releases.ReleaseExternalTemplate.Input, err)
 		}
 	}
 
@@ -77,7 +90,145 @@ func main() {
 		if err != nil {
 			log.Fatalf("Err: %v", err)
 		}
+		err = generateExternalIssue(config.Issues.IssueExternalTemplate, externalIssueList)
+		if err != nil {
+			log.Fatalf("Failed to generate the report: %v, with template: %v. Error is: %v",
+				config.Issues.IssueExternalTemplate.Output, config.Issues.IssueExternalTemplate.Input, err)
+		}
 	}
+}
+
+func getOrg(organizations []Organization, name string) OrganizationStructure {
+	for _, org := range organizations {
+		if org.Organization.Name == name {
+			return org.Organization
+		}
+	}
+	// Unexpected
+	log.Fatalln("Unexpected organization found!")
+	return OrganizationStructure{}
+}
+
+func getExternalReports(config Configuration,
+	expectedPrList []PullRequestDetails,
+	orgReleasesList []ReleaseDetails,
+	issueList []IssueDetails,
+) ([]ExternalPRDetails, []ExternalReleaseDetails, []ExternalIssueDetails) {
+	if !config.GlobalConfiguration.ExternalTemplate.Enabled {
+		return []ExternalPRDetails{}, []ExternalReleaseDetails{}, []ExternalIssueDetails{}
+	}
+	var externalPRDetails []ExternalPRDetails
+	for _, org := range expectedPrList {
+		organization := getOrg(config.GlobalConfiguration.Organizations, org.Organization)
+		for _, repo := range org.PrRepoLists {
+			elementPRDetails := ExternalPRDetails{
+				Organization: OrganizationStructure{
+					Github: org.Organization,
+					Name:   organization.Name,
+				},
+				Repository: RepositoryStructure{
+					Name: repo.Repository,
+					Link: "https://github.com/" + org.Organization + "/" + repo.Repository,
+				},
+				PRs: repo.PRs,
+			}
+			externalPRDetails = append(externalPRDetails, elementPRDetails)
+		}
+	}
+	var externalReleaseDetails []ExternalReleaseDetails
+	for _, org := range orgReleasesList {
+		organization := getOrg(config.GlobalConfiguration.Organizations, org.Organization)
+		for _, repo := range org.ReleaseRepoLists {
+			elementRelease := ExternalReleaseDetails{
+				Organization: OrganizationStructure{
+					Github: org.Organization,
+					Name:   organization.Name,
+				},
+				Repository: RepositoryStructure{
+					Name: repo.Repository,
+					Link: "https://github.com/" + org.Organization + "/" + repo.Repository,
+				},
+				Releases: repo.Releases,
+			}
+			externalReleaseDetails = append(externalReleaseDetails, elementRelease)
+		}
+	}
+	var externalIssueDetails []ExternalIssueDetails
+	for _, org := range issueList {
+		organization := getOrg(config.GlobalConfiguration.Organizations, org.Organization)
+		for _, repo := range org.IssueLists {
+			elementIssue := ExternalIssueDetails{
+				Organization: OrganizationStructure{
+					Github: org.Organization,
+					Name:   organization.Name,
+				},
+				Repository: RepositoryStructure{
+					Name: repo.Repository,
+					Link: "https://github.com/" + org.Organization + "/" + repo.Repository,
+				},
+				Issues: repo.Issues,
+			}
+			externalIssueDetails = append(externalIssueDetails, elementIssue)
+		}
+	}
+	return externalPRDetails, externalReleaseDetails, externalIssueDetails
+}
+
+func generateExternalPR(externalTemplate ElementExternalTemplate, values []ExternalPRDetails) error {
+	if len(values) == 0 {
+		log.Println("External template file generation is not requested")
+		return nil
+	}
+	for _, value := range values {
+		err := generateExternalFile(value, value.Repository.Name, externalTemplate)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func generateExternalIssue(externalTemplate ElementExternalTemplate, values []ExternalIssueDetails) error {
+	if len(values) == 0 {
+		log.Println("External template file generation is not requested")
+		return nil
+	}
+	for _, value := range values {
+		err := generateExternalFile(value, value.Repository.Name, externalTemplate)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func generateExternalRelease(externalTemplate ElementExternalTemplate, values []ExternalReleaseDetails) error {
+	if len(values) == 0 {
+		log.Println("External template file generation is not requested")
+		return nil
+	}
+	for _, value := range values {
+		err := generateExternalFile(value, value.Repository.Name, externalTemplate)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func generateExternalFile(value interface{}, filename string, externalTemplate ElementExternalTemplate) error {
+	var err error
+	outputFileName := filename
+	err = os.MkdirAll(externalTemplate.Output, 755)
+	if err != nil {
+		return err
+	}
+	outputFilePath := path.Join(externalTemplate.Output, outputFileName)
+	err = PrettyPrint(value, outputFilePath, externalTemplate.Input)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func generateReport(dataFileName string, v interface{}, reportFilePath string, templateFilePath string) error {
@@ -104,7 +255,7 @@ func getExpectedReportsLists(config Configuration, client ClientInterface) ([]Pu
 
 	for _, organization := range config.GlobalConfiguration.Organizations {
 
-		repos, err := client.ListRepositories(organization.Organization.Name)
+		repos, err := client.ListRepositories(organization.Organization.Github)
 		if err != nil {
 			log.Fatalf("Err: %v", err)
 			return nil, nil, nil, true
@@ -137,39 +288,39 @@ func getExpectedReportsLists(config Configuration, client ClientInterface) ([]Pu
 }
 
 func getReleaseList(client ClientInterface, organization Organization, repos []string, config Configuration) (ReleaseDetails, bool) {
-	orgReleases, err := client.ListReleases(organization.Organization.Name, repos, config.GlobalConfiguration.DaysCount)
+	orgReleases, err := client.ListReleases(organization.Organization.Github, repos, config.GlobalConfiguration.DaysCount)
 	if err != nil {
 		log.Fatalf("Err: %v", err)
 		return ReleaseDetails{}, true
 	}
 	releaseList := ReleaseDetails{
-		Organization:     organization.Organization.Name,
+		Organization:     organization.Organization.Github,
 		ReleaseRepoLists: orgReleases,
 	}
 	return releaseList, false
 }
 
 func getIssueList(client ClientInterface, organization Organization, repos []string, config Configuration) (IssueDetails, bool) {
-	issues, err := client.IssueWithLabels(organization.Organization.Name, repos, config.Issues.IssueTags, config.Issues.IssueCreatedHistoryDays)
+	issues, err := client.IssueWithLabels(organization.Organization.Github, repos, config.Issues.IssueTags, config.Issues.IssueCreatedHistoryDays)
 	if err != nil {
 		log.Fatalf("Err: %v", err)
 		return IssueDetails{}, true
 	}
 	issueList := IssueDetails{
-		Organization: organization.Organization.Name,
+		Organization: organization.Organization.Github,
 		IssueLists:   issues,
 	}
 	return issueList, false
 }
 
 func getExpectedPullRequests(client ClientInterface, organization Organization, repos []string, config Configuration) (PullRequestDetails, bool) {
-	pRs, err := client.ListPRs(organization.Organization.Name, repos, config.GlobalConfiguration.DaysCount)
+	pRs, err := client.ListPRs(organization.Organization.Github, repos, config.GlobalConfiguration.DaysCount)
 	if err != nil {
 		log.Fatalf("Err: %v", err)
 		return PullRequestDetails{}, true
 	}
 	expectedPrs := PullRequestDetails{
-		Organization: organization.Organization.Name,
+		Organization: organization.Organization.Github,
 		PrRepoLists:  pRs,
 	}
 	return expectedPrs, false

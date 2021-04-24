@@ -1,4 +1,4 @@
-module noteworthy-prs
+module hyperledger-updates
 
 go 1.15
 

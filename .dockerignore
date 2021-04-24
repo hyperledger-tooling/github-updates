@@ -3,14 +3,13 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
-noteworthy-prs
+hyperledger-updates
 go.sum
 .idea
 
 # Ignore generated files
-data.json
-pr-summary.html
-release-summary.html
+html/generated/*
+generated-data/*.json
 
 # Ignore .env file
 .env

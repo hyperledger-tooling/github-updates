@@ -1,10 +1,16 @@
 global:
   organizations:
     - organization:
-        name: "hyperledger"
+        name: "Hyperledger"
+        github: "hyperledger"
     - organization:
-        name: "hyperledger-labs"
+        name: "Hyperledger Labs"
+        github: "hyperledger-labs"
   scrape-duration-days: 7
+  external-template:
+    enabled: false
+    # Possible values "repository"
+    template-for: "repository"
 
 # Config for Issues
 issues:
@@ -15,15 +21,24 @@ issues:
   summary-filename: "html/generated/issue-summary.html"
   should-run: true
   data-file: "generated-data/issue-data.json"
+  external-template:
+    input: ""
+    output: ""
 
 # Config for Pull Requests
 pull-requests:
   summary-filename: "html/generated/pr-summary.html"
   should-run: true
   data-file: "generated-data/pr-data.json"
+  external-template:
+    input: ""
+    output: ""
 
 # Config for Releases
 releases:
   summary-filename: "html/generated/release-summary.html"
   should-run: true
   data-file: "generated-data/release-data.json"
+  external-template:
+    input: ""
+    output: ""

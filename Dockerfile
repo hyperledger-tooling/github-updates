@@ -5,4 +5,4 @@ RUN go build
 RUN rm *.go go.*
 ENV PATH=${PATH}:/app
 
-CMD ["noteworthy-prs"]
+CMD ["hyperledger-updates"]
