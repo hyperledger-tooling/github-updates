@@ -144,5 +144,5 @@ You may optionally build and run the tool as
 
 ```bash
 go build
-./noteworthy-prs
+./hyperledger-updates
 ```
