@@ -126,6 +126,8 @@ the configuration file.
 PR_SUMMARY_FILE_PATH
 # The html print file path for releases
 RELEASE_SUMMARY_FILE_PATH
+# Issue summary html path
+ISSUE_SUMMARY_FILE_PATH
 # GitHub access token
 GITHUB_TOKEN
 # Configuration file path
