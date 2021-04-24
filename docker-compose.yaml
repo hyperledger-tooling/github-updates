@@ -1,11 +1,11 @@
 version: "3.6"
 
 services:
-  noteworthy-prs:
+  hyperledger-updates:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: noteworthy-pr
+    container_name: hyperledger-updates
     environment:
       - GITHUB_TOKEN=${GITHUB_TOKEN}
     volumes:

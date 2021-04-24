@@ -25,6 +25,29 @@ type Client struct {
 	Context ctx.Context
 }
 
+type RepositoryStructure struct {
+	Name string
+	Link string
+}
+
+type ExternalPRDetails struct {
+	Organization OrganizationStructure
+	Repository   RepositoryStructure
+	PRs          []github.PullRequest
+}
+
+type ExternalIssueDetails struct {
+	Organization OrganizationStructure
+	Repository   RepositoryStructure
+	Issues       []github.Issue
+}
+
+type ExternalReleaseDetails struct {
+	Organization OrganizationStructure
+	Repository   RepositoryStructure
+	Releases     []github.RepositoryRelease
+}
+
 // PullRequestDetails contains organization name
 // and PrLists
 type PullRequestDetails struct {

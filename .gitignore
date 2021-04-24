@@ -15,11 +15,10 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
-noteworthy-prs
+hyperledger-updates
 .idea
 
 # Ignore generated files
-data.json
 html/generated/*
 generated-data/*.json
 # Ignore .env file

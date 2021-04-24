@@ -1,10 +1,14 @@
-# NOTEWORTHY PRs
+# HYPERLEDGER UPDATES
 
 The tool will assist in getting the PRs curated for the weekly developer
 newsletter sent by Hyperledger. The tool will print list of all PRs from
 Hyperledger and Hyperledger Labs into a html file that were raised in
 last `X` days. The number of days is configurable, current default is set
 to be 7. Similarly, it will pull all the releases created in last `X` days.
+
+In addition to the PRs, the tool also polls for the issues with specific
+tags and tracks releases on the input organization repositories. It is
+customizable to enable any one or all three of these.
 
 Note that the tool expects user to set the GitHub personal access token
 with the read access. This is to avoid GitHub from blocking the machine due
@@ -47,10 +51,17 @@ global:
   # has to be listed as a list element.
   organizations:
     - organization:
-        name: "hyperledger"
+        name: "Hyperledger"
+        github: "hyperledger"
     - organization:
-        name: "hyperledger-labs"
+        name: "Hyperledger Labs"
+        github: "hyperledger-labs"
   scrape-duration-days: 7
+  # Set this to true and specify input/output files
+  external-template:
+    enabled: false
+    # Possible values "repository"
+    template-for: "repository"
 
 # Config for Issues
 issue:
@@ -66,6 +77,12 @@ issue:
   should-run: true
   # Data file for raw output
   data-file: "generated-data/issue-data.json"
+  # Applicable if globally external-template is enabled
+  external-template:
+    # Input template file
+    input: ""
+    # Output file path, the generated file will with the repo name
+    output: ""
 
 # Config for Pull Requests
 pull-requests:
@@ -75,6 +92,12 @@ pull-requests:
   should-run: true
   # Data file for raw output
   data-file: "generated-data/pr-data.json"
+  # Applicable if globally external-template is enabled
+  external-template:
+    # Input template file
+    input: ""
+    # Output file path, the generated file will with the repo name
+    output: ""
 
 # Config for Releases
 releases:
@@ -84,6 +107,12 @@ releases:
   should-run: true
   # Data file for raw output
   data-file: "generated-data/release-data.json"
+  # Applicable if globally external-template is enabled
+  external-template:
+    # Input template file
+    input: ""
+    # Output file path, the generated file will with the repo name
+    output: ""
 ```
 
 ## Environment
@@ -95,7 +124,7 @@ the configuration file.
 ```bash
 # The html print file path for PRs
 PR_SUMMARY_FILE_PATH
-The html print file path for releases
+# The html print file path for releases
 RELEASE_SUMMARY_FILE_PATH
 # GitHub access token
 GITHUB_TOKEN
