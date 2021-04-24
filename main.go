@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"path/filepath"
 
 	yaml "gopkg.in/yaml.v2"
 )
@@ -100,7 +101,7 @@ func main() {
 
 func getOrg(organizations []Organization, name string) OrganizationStructure {
 	for _, org := range organizations {
-		if org.Organization.Name == name {
+		if org.Organization.Github == name {
 			return org.Organization
 		}
 	}
@@ -218,7 +219,7 @@ func generateExternalRelease(externalTemplate ElementExternalTemplate, values []
 
 func generateExternalFile(value interface{}, filename string, org string, externalTemplate ElementExternalTemplate) error {
 	var err error
-	outputFileName := filename
+	outputFileName := filename + filepath.Ext(externalTemplate.Input)
 	outputPath := path.Join(externalTemplate.Output, org)
 	err = os.MkdirAll(outputPath, 755)
 	if err != nil {
@@ -253,6 +254,7 @@ func getExpectedReportsLists(config Configuration, client ClientInterface) ([]Pu
 	var expectedPrList []PullRequestDetails
 	var orgReleasesList []ReleaseDetails
 	var issueList []IssueDetails
+	var errorOccurred bool = false
 
 	for _, organization := range config.GlobalConfiguration.Organizations {
 
@@ -263,29 +265,34 @@ func getExpectedReportsLists(config Configuration, client ClientInterface) ([]Pu
 		}
 		log.Printf("List for %v is : %v", organization, repos)
 
-		//// Pull requests
-		expectedPrs, errorOccurred := getExpectedPullRequests(client, organization, repos, config)
-		if errorOccurred {
-			return nil, nil, nil, true
+		if config.PullRequests.PRReportShouldRun {
+			//// Pull requests
+			expectedPrs, errorOccurred := getExpectedPullRequests(client, organization, repos, config)
+			if errorOccurred {
+				return nil, nil, nil, errorOccurred
+			}
+			expectedPrList = append(expectedPrList, expectedPrs)
 		}
-		expectedPrList = append(expectedPrList, expectedPrs)
 
-		// Releases
-		releaseList, errorOccurred := getReleaseList(client, organization, repos, config)
-		if errorOccurred {
-			return nil, nil, nil, true
+		if config.Releases.ReleaseReportShouldRun {
+			// Releases
+			releaseList, errorOccurred := getReleaseList(client, organization, repos, config)
+			if errorOccurred {
+				return nil, nil, nil, errorOccurred
+			}
+			orgReleasesList = append(orgReleasesList, releaseList)
 		}
-		orgReleasesList = append(orgReleasesList, releaseList)
 
-		//good first issues and other configured tags
-		expectedIssues, errorOccurred := getIssueList(client, organization, repos, config)
-		if errorOccurred {
-			return nil, nil, nil, true
+		if config.Issues.IssueReportShouldRun {
+			//good first issues and other configured tags
+			expectedIssues, errorOccurred := getIssueList(client, organization, repos, config)
+			if errorOccurred {
+				return nil, nil, nil, errorOccurred
+			}
+			issueList = append(issueList, expectedIssues)
 		}
-		issueList = append(issueList, expectedIssues)
-
 	}
-	return expectedPrList, orgReleasesList, issueList, false
+	return expectedPrList, orgReleasesList, issueList, errorOccurred
 }
 
 func getReleaseList(client ClientInterface, organization Organization, repos []string, config Configuration) (ReleaseDetails, bool) {
