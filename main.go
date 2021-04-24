@@ -180,7 +180,7 @@ func generateExternalPR(externalTemplate ElementExternalTemplate, values []Exter
 		return nil
 	}
 	for _, value := range values {
-		err := generateExternalFile(value, value.Repository.Name, externalTemplate)
+		err := generateExternalFile(value, value.Repository.Name, value.Organization.Github, externalTemplate)
 		if err != nil {
 			return err
 		}
@@ -194,7 +194,7 @@ func generateExternalIssue(externalTemplate ElementExternalTemplate, values []Ex
 		return nil
 	}
 	for _, value := range values {
-		err := generateExternalFile(value, value.Repository.Name, externalTemplate)
+		err := generateExternalFile(value, value.Repository.Name, value.Organization.Github, externalTemplate)
 		if err != nil {
 			return err
 		}
@@ -208,7 +208,7 @@ func generateExternalRelease(externalTemplate ElementExternalTemplate, values []
 		return nil
 	}
 	for _, value := range values {
-		err := generateExternalFile(value, value.Repository.Name, externalTemplate)
+		err := generateExternalFile(value, value.Repository.Name, value.Organization.Github, externalTemplate)
 		if err != nil {
 			return err
 		}
@@ -216,14 +216,15 @@ func generateExternalRelease(externalTemplate ElementExternalTemplate, values []
 	return nil
 }
 
-func generateExternalFile(value interface{}, filename string, externalTemplate ElementExternalTemplate) error {
+func generateExternalFile(value interface{}, filename string, org string, externalTemplate ElementExternalTemplate) error {
 	var err error
 	outputFileName := filename
-	err = os.MkdirAll(externalTemplate.Output, 755)
+	outputPath := path.Join(externalTemplate.Output, org)
+	err = os.MkdirAll(outputPath, 755)
 	if err != nil {
 		return err
 	}
-	outputFilePath := path.Join(externalTemplate.Output, outputFileName)
+	outputFilePath := path.Join(outputPath, outputFileName)
 	err = PrettyPrint(value, outputFilePath, externalTemplate.Input)
 	if err != nil {
 		return err
