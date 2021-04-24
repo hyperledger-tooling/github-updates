@@ -101,7 +101,7 @@ func main() {
 
 func getOrg(organizations []Organization, name string) OrganizationStructure {
 	for _, org := range organizations {
-		if org.Organization.Name == name {
+		if org.Organization.Github == name {
 			return org.Organization
 		}
 	}
