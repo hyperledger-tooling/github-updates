@@ -19,8 +19,8 @@ hyperledger-updates
 .idea
 
 # Ignore generated files
-html/generated/*
-generated-data/*.json
+assets/html/generated/*
+assets/generated-data/*.json
 # Ignore .env file
-.env
+deployments/.env
 .DS_Store

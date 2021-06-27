@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package main
+package utils
 
 import (
 	"encoding/json"
@@ -44,4 +44,12 @@ func PrettyPrint(v interface{}, fileName string, templateFile string) error {
 	}
 	err = t.Execute(f, v)
 	return err
+}
+
+func GetEnvOrDefault(env, defaultValue string) string {
+	value, isPresent := os.LookupEnv(env)
+	if isPresent {
+		return value
+	}
+	return defaultValue
 }

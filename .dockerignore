@@ -4,19 +4,18 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 hyperledger-updates
-go.sum
 .idea
 
 # Ignore generated files
-html/generated/*
-generated-data/*.json
+assets/html/generated/*
+assets/generated-data/*.json
 
 # Ignore .env file
-.env
+deployments/.env
 
 # Ignore gitignore
 .gitignore
 
 #ignore docker compose file
-docker-compose.yaml
+deployments/docker-compose.yaml
 .DS_Store
