@@ -12,11 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM golang:1.15-buster
+FROM golang:1.16.3-alpine
+
+# Add make command
+RUN apk add --no-cache make bash
+
 WORKDIR /app
 COPY . /app
-RUN go build
-RUN rm *.go go.*
-ENV PATH=${PATH}:/app
+RUN make
+
+WORKDIR /appbin
+RUN cp /app/hyperledger-updates /appbin/
+RUN rm -r /app
+
+ENV PATH=${PATH}:/appbin
 
 CMD ["hyperledger-updates"]

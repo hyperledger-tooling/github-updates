@@ -139,12 +139,12 @@ CONFIG_FILE
 Prefer to run it as a container, run the following command
 
 ```bash
-docker-compose up
+docker-compose -f deployments/docker-compose.yaml up
 ```
 
 You may optionally build and run the tool as
 
 ```bash
-go build
+make
 ./hyperledger-updates
 ```

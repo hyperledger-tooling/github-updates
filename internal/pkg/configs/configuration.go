@@ -14,7 +14,14 @@
  * limitations under the License.
  */
 
-package main
+package configs
+
+import (
+	"gopkg.in/yaml.v2"
+	"hyperledger-updates/internal/pkg/utils"
+	"io/ioutil"
+	"log"
+)
 
 // Configuration reads the input config file
 type Configuration struct {
@@ -73,4 +80,21 @@ type Organization struct {
 type OrganizationStructure struct {
 	Github string `yaml:"github"`
 	Name   string `yaml:"name"`
+}
+
+// ReadConfiguration returns the configuration object
+func ReadConfiguration() Configuration {
+
+	log.Println("Reading the configuration file")
+	var config Configuration
+	var configFile = utils.GetEnvOrDefault(ConfigFile, "config.yaml")
+	fileContents, err := ioutil.ReadFile(configFile)
+	if err != nil {
+		log.Fatalf("Couldn't read the config file %v, Err: %v", configFile, err)
+	}
+	err = yaml.Unmarshal(fileContents, &config)
+	if err != nil {
+		log.Fatalf("Error while parsing the config file %v, Err: %v", configFile, err)
+	}
+	return config
 }

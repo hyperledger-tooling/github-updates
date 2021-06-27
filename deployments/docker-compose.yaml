@@ -17,11 +17,16 @@ version: "3.6"
 services:
   hyperledger-updates:
     build:
-      context: .
+      context: ..
       dockerfile: Dockerfile
     container_name: hyperledger-updates
     environment:
       - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - CONFIG_FILE=/appbin/config.yaml
+      - PR_TEMPLATE_FILE=/appbin/html/template/pr-template.html
+      - RELEASE_TEMPLATE_FILE=/appbin/html/template/release-template.html
+      - ISSUE_TEMPLATE_FILE=/appbin/html/template/issue-template.html
     volumes:
-      - ./html/generated:/app/html/generated
-      - ./generated-data:/app/generated-data
+      - ../assets/html:/appbin/html
+      - ../assets/generated-data:/appbin/generated-data
+      - ../assets/config.yaml:/appbin/config.yaml

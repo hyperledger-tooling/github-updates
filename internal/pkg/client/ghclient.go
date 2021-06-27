@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package main
+package client
 
 import (
 	ctx "context"
 	"errors"
+	"hyperledger-updates/internal/pkg/configs"
+	"hyperledger-updates/internal/pkg/utils"
 	"log"
 	"net/http"
 	"time"
@@ -27,81 +29,15 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// ClientInterface is for testing
-type ClientInterface interface {
-	ListRepositories(string) ([]string, error)
-	ListPRs(string, []string, int) ([]PrList, error)
-	ListReleases(string, []string, int) ([]ReleaseList, error)
-	IssueWithLabels(string, []string, []string, int) ([]IssueList, error)
-}
-
 // Client is the custom handler for all requests
 type Client struct {
 	Client  *github.Client
 	Context ctx.Context
 }
 
-type RepositoryStructure struct {
-	Name string
-	Link string
-}
-
-type ExternalPRDetails struct {
-	Organization OrganizationStructure
-	Repository   RepositoryStructure
-	PRs          []github.PullRequest
-}
-
-type ExternalIssueDetails struct {
-	Organization OrganizationStructure
-	Repository   RepositoryStructure
-	Issues       []github.Issue
-}
-
-type ExternalReleaseDetails struct {
-	Organization OrganizationStructure
-	Repository   RepositoryStructure
-	Releases     []github.RepositoryRelease
-}
-
-// PullRequestDetails contains organization name
-// and PrLists
-type PullRequestDetails struct {
-	Organization string   `json:"organization,omitempty"`
-	PrRepoLists  []PrList `json:"prlists,omitempty"`
-}
-
-// PrList contains repository name
-// and the associated PRs
-type PrList struct {
-	Repository string               `json:"repository,omitempty"`
-	PRs        []github.PullRequest `json:"prs,omitempty"`
-}
-
-type ReleaseDetails struct {
-	Organization     string        `json:"organization,omitempty"`
-	ReleaseRepoLists []ReleaseList `json:"releaseList,omitempty"`
-}
-
-type IssueDetails struct {
-	Organization string      `json:"organization,omitempty"`
-	IssueLists   []IssueList `json:"issueLists,omitempty"`
-}
-
-type ReleaseList struct {
-	Repository string                     `json:"repository,omitempty"`
-	Releases   []github.RepositoryRelease `json:"releases,omitempty"`
-}
-
-type IssueList struct {
-	Repository string         `json:"repository,omitempty"`
-	Labels     []string       `json:"labels,omitempty"`
-	Issues     []github.Issue `json:"issues,omitempty"`
-}
-
 // NewClient creates a new instance of GitHub client
-func NewClient() ClientInterface {
-	token := getEnvOrDefault(GitHubToken, "")
+func NewClient() GHClientInterface {
+	token := utils.GetEnvOrDefault(configs.GitHubToken, "")
 	context := ctx.Background()
 	if token == "" {
 		return Client{
@@ -120,7 +56,7 @@ func NewClient() ClientInterface {
 
 // ListRepositories returns the list of all repositories
 func (c Client) ListRepositories(org string) ([]string, error) {
-	listOfRepositories := []string{}
+	var listOfRepositories []string
 	listOption := &github.RepositoryListByOrgOptions{
 		ListOptions: github.ListOptions{
 			PerPage: 20,
@@ -134,7 +70,7 @@ func (c Client) ListRepositories(org string) ([]string, error) {
 		}
 		log.Printf("Response: %v", response)
 		if response.StatusCode != http.StatusOK {
-			return nil, errors.New("Could not get the response")
+			return nil, errors.New("could not get the response")
 		}
 		for _, repository := range repositories {
 			listOfRepositories = append(listOfRepositories, *repository.Name)
@@ -151,7 +87,7 @@ func (c Client) ListRepositories(org string) ([]string, error) {
 }
 
 // ListPRs returns the list of PRs for a given organization and repository
-func (c Client) ListPRs(org string, repos []string, daysCount int) ([]PrList, error) {
+func (c Client) ListPRs(org string, repos []string, daysCount int) ([]configs.PrList, error) {
 	prListOptions := &github.PullRequestListOptions{
 		State: "all",
 		ListOptions: github.ListOptions{
@@ -159,7 +95,7 @@ func (c Client) ListPRs(org string, repos []string, daysCount int) ([]PrList, er
 		},
 	}
 	dayDiff := daysCount * -1
-	var pullRequests []PrList
+	var pullRequests []configs.PrList
 
 	for _, repo := range repos {
 		var listPullRequests []github.PullRequest
@@ -171,7 +107,7 @@ func (c Client) ListPRs(org string, repos []string, daysCount int) ([]PrList, er
 			}
 			log.Printf("Response: %v", response)
 			if response.StatusCode != http.StatusOK {
-				return nil, errors.New("Could not get the response")
+				return nil, errors.New("could not get the response")
 			}
 
 			for _, pr := range prs {
@@ -199,7 +135,7 @@ func (c Client) ListPRs(org string, repos []string, daysCount int) ([]PrList, er
 
 		}
 		if len(listPullRequests) != 0 {
-			pullRequestElement := PrList{
+			pullRequestElement := configs.PrList{
 				Repository: repo,
 				PRs:        listPullRequests,
 			}
@@ -211,9 +147,9 @@ func (c Client) ListPRs(org string, repos []string, daysCount int) ([]PrList, er
 
 }
 
-func (c Client) ListReleases(org string, repos []string, daysCount int) ([]ReleaseList, error) {
+func (c Client) ListReleases(org string, repos []string, daysCount int) ([]configs.ReleaseList, error) {
 
-	var listReleases []ReleaseList
+	var listReleases []configs.ReleaseList
 	dayDiff := daysCount * -1
 
 	releaseListOptions := &github.ListOptions{PerPage: 20}
@@ -232,10 +168,10 @@ func (c Client) ListReleases(org string, repos []string, daysCount int) ([]Relea
 			}
 			log.Printf("Response: %v", response)
 			if response.StatusCode != http.StatusOK {
-				return nil, errors.New("Could not get the response")
+				return nil, errors.New("could not get the response")
 			}
 
-			// For each release, break if the date is reched
+			// For each release, break if the date is reached
 			// else add the release list to the listReleases
 			// and move to the next page
 			for _, release := range releases {
@@ -264,7 +200,7 @@ func (c Client) ListReleases(org string, repos []string, daysCount int) ([]Relea
 		}
 
 		if len(releaseList) != 0 {
-			releaseListElement := ReleaseList{
+			releaseListElement := configs.ReleaseList{
 				Repository: repo,
 				Releases:   releaseList,
 			}
@@ -274,8 +210,8 @@ func (c Client) ListReleases(org string, repos []string, daysCount int) ([]Relea
 	return listReleases, nil
 }
 
-func (c Client) IssueWithLabels(org string, repos []string, issueLabels []string, daysCount int) ([]IssueList, error) {
-	var issueList []IssueList
+func (c Client) IssueWithLabels(org string, repos []string, issueLabels []string, daysCount int) ([]configs.IssueList, error) {
+	var issueList []configs.IssueList
 
 	dayDiff := daysCount * -1
 
@@ -304,7 +240,7 @@ func (c Client) IssueWithLabels(org string, repos []string, issueLabels []string
 			}
 			log.Printf("Response: %v", response)
 			if response.StatusCode != http.StatusOK {
-				return nil, errors.New("Could not get the response for fetching issues")
+				return nil, errors.New("could not get the response for fetching issues")
 			}
 			for _, issue := range issues {
 
@@ -335,7 +271,7 @@ func (c Client) IssueWithLabels(org string, repos []string, issueLabels []string
 			issueListOptions.Page = response.NextPage
 		}
 		if len(listIssues) != 0 {
-			issueElement := IssueList{
+			issueElement := configs.IssueList{
 				Repository: repo,
 				Labels:     issueLabels,
 				Issues:     listIssues,
