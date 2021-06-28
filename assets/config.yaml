@@ -38,6 +38,7 @@ issues:
   external-template:
     input: ""
     output: ""
+    summary: ""
 
 # Config for Pull Requests
 pull-requests:
@@ -47,6 +48,7 @@ pull-requests:
   external-template:
     input: ""
     output: ""
+    summary: ""
 
 # Config for Releases
 releases:
@@ -56,3 +58,4 @@ releases:
   external-template:
     input: ""
     output: ""
+    summary: ""
