@@ -17,6 +17,7 @@
 package main
 
 import (
+	"github.com/google/go-github/v33/github"
 	client2 "hyperledger-updates/internal/pkg/client"
 	"hyperledger-updates/internal/pkg/configs"
 	"hyperledger-updates/internal/pkg/utils"
@@ -24,6 +25,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"sort"
 )
 
 var AppVersion = ""
@@ -251,7 +253,9 @@ func generateExternalPR(
 			return err
 		}
 	}
-	return nil
+
+	// store the trending info in summary file
+	return generateTopFile("recentPRs", recentPRs(values), externalTemplate)
 }
 
 func generateExternalIssue(
@@ -274,7 +278,9 @@ func generateExternalIssue(
 			return err
 		}
 	}
-	return nil
+
+	// store the trending info in summary file
+	return generateTopFile("recentIssues", recentIssues(values), externalTemplate)
 }
 
 func generateExternalRelease(
@@ -297,7 +303,9 @@ func generateExternalRelease(
 			return err
 		}
 	}
-	return nil
+
+	// store the trending info in summary file
+	return generateTopFile("recentReleases", recentReleases(values), externalTemplate)
 }
 
 func generateExternalFile(
@@ -319,6 +327,17 @@ func generateExternalFile(
 		return err
 	}
 	return nil
+}
+
+func generateTopFile(
+	identifier string,
+	values interface{},
+	externalTemplateInfo configs.ElementExternalTemplate,
+) error {
+	outputFileName := identifier + filepath.Ext(externalTemplateInfo.Summary)
+	outputPath := filepath.Dir(externalTemplateInfo.Summary)
+	outputFilePath := path.Join(outputPath, outputFileName)
+	return utils.PrettyPrint(values, outputFilePath, externalTemplateInfo.Summary)
 }
 
 func generateReport(
@@ -461,4 +480,55 @@ func getExpectedPullRequests(
 		PrRepoLists:  pRs,
 	}
 	return expectedPrs, false
+}
+
+func recentPRs(prs []configs.ExternalPRDetails) []github.PullRequest {
+	// get the list of all PRs from across repositories
+	var allPRs []github.PullRequest
+	for _, pr := range prs {
+		allPRs = append(allPRs, pr.PRs...)
+	}
+
+	// sort the PRs by top, descending order of time of creation
+	sort.Slice(allPRs, func(first, second int) bool {
+		return allPRs[first].CreatedAt.After(*allPRs[second].CreatedAt)
+	})
+
+	// return the top n items
+	// n is 5 for now
+	return allPRs[:5]
+}
+
+func recentIssues(issues []configs.ExternalIssueDetails) []github.Issue {
+	// get the list of all PRs from across repositories
+	var allIssues []github.Issue
+	for _, issue := range issues {
+		allIssues = append(allIssues, issue.Issues...)
+	}
+
+	// sort the PRs by top, descending order of time of creation
+	sort.Slice(allIssues, func(first, second int) bool {
+		return allIssues[first].CreatedAt.After(*allIssues[second].CreatedAt)
+	})
+
+	// return the top n items
+	// n is 5 for now
+	return allIssues[:5]
+}
+
+func recentReleases(releases []configs.ExternalReleaseDetails) []github.RepositoryRelease {
+	// get the list of all PRs from across repositories
+	var allReleases []github.RepositoryRelease
+	for _, release := range releases {
+		allReleases = append(allReleases, release.Releases...)
+	}
+
+	// sort the PRs by top, descending order of time of creation
+	sort.Slice(allReleases, func(first, second int) bool {
+		return allReleases[first].CreatedAt.After(allReleases[second].CreatedAt.Time)
+	})
+
+	// return the top n items
+	// n is 5 for now
+	return allReleases[:5]
 }
