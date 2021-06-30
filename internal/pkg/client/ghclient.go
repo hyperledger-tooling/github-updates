@@ -176,6 +176,10 @@ func (c Client) ListReleases(org string, repos []string, daysCount int) ([]confi
 			// and move to the next page
 			for _, release := range releases {
 
+				// Ignore if it's a draft release
+				if *release.Draft {
+					continue
+				}
 				publishedDate := release.PublishedAt
 				startDate := time.Now().AddDate(0, 0, dayDiff)
 				log.Println("publishedDate", publishedDate, "start date", startDate, " if condition", publishedDate.Before(startDate))
