@@ -1,2 +1,3 @@
-# This file is to automatically add code owners in PR reviews
-* @hyperledger-tooling/hyperledger-updates-maintainers
+# SPDX-License-Identifier: Apache-2.0
+
+*	@hyperledger-tooling/hyperledger-updates-maintainers
