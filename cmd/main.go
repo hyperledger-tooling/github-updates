@@ -255,7 +255,7 @@ func generateExternalPR(
 	}
 
 	// store the trending info in summary file
-	return generateTopFile("recentPRs", recentPRs(values), externalTemplate)
+	return generateTopFile(recentPRs(values), externalTemplate)
 }
 
 func generateExternalIssue(
@@ -280,7 +280,7 @@ func generateExternalIssue(
 	}
 
 	// store the trending info in summary file
-	return generateTopFile("recentIssues", recentIssues(values), externalTemplate)
+	return generateTopFile(recentIssues(values), externalTemplate)
 }
 
 func generateExternalRelease(
@@ -305,7 +305,7 @@ func generateExternalRelease(
 	}
 
 	// store the trending info in summary file
-	return generateTopFile("recentReleases", recentReleases(values), externalTemplate)
+	return generateTopFile(recentReleases(values), externalTemplate)
 }
 
 func generateExternalFile(
@@ -330,12 +330,11 @@ func generateExternalFile(
 }
 
 func generateTopFile(
-	identifier string,
 	values interface{},
 	externalTemplateInfo configs.ElementExternalTemplate,
 ) error {
-	outputFileName := identifier + filepath.Ext(externalTemplateInfo.Summary)
-	outputPath := filepath.Dir(externalTemplateInfo.Summary)
+	outputFileName := filepath.Base(externalTemplateInfo.Generated)
+	outputPath := filepath.Dir(externalTemplateInfo.Generated)
 	outputFilePath := path.Join(outputPath, outputFileName)
 	return utils.PrettyPrint(values, outputFilePath, externalTemplateInfo.Summary)
 }
