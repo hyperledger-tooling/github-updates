@@ -39,6 +39,7 @@ issues:
     input: ""
     output: ""
     summary: ""
+    sum-generated: ""
 
 # Config for Pull Requests
 pull-requests:
@@ -49,6 +50,7 @@ pull-requests:
     input: ""
     output: ""
     summary: ""
+    sum-generated: ""
 
 # Config for Releases
 releases:
@@ -59,3 +61,4 @@ releases:
     input: ""
     output: ""
     summary: ""
+    sum-generated: ""

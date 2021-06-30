@@ -55,9 +55,10 @@ type ReleaseConfiguration struct {
 }
 
 type ElementExternalTemplate struct {
-	Input   string `yaml:"input"`
-	Output  string `yaml:"output"`
-	Summary string `yaml:"summary"`
+	Input     string `yaml:"input"`
+	Output    string `yaml:"output"`
+	Summary   string `yaml:"summary"`
+	Generated string `yaml:"sum-generated"`
 }
 
 type GlobalConfiguration struct {
