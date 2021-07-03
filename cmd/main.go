@@ -372,7 +372,7 @@ func getExpectedReportsLists(
 
 	for _, organization := range config.GlobalConfiguration.Organizations {
 
-		repos, err := client.ListRepositories(organization.Organization.Github)
+		repos, err := client.ListRepositories(organization.Organization.Github, config.GlobalConfiguration.RepoClass)
 		if err != nil {
 			log.Fatalf("Err: %v", err)
 			return nil, nil, nil, true

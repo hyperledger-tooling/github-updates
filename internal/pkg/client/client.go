@@ -20,7 +20,7 @@ import "github-updates/internal/pkg/configs"
 
 // GHClientInterface is for testing
 type GHClientInterface interface {
-	ListRepositories(string) ([]string, error)
+	ListRepositories(string, string) ([]string, error)
 	ListPRs(string, []string, int) ([]configs.PrList, error)
 	ListReleases(string, []string, int) ([]configs.ReleaseList, error)
 	IssueWithLabels(string, []string, []string, int) ([]configs.IssueList, error)

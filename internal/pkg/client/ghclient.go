@@ -55,12 +55,13 @@ func NewClient() GHClientInterface {
 }
 
 // ListRepositories returns the list of all repositories
-func (c Client) ListRepositories(org string) ([]string, error) {
+func (c Client) ListRepositories(org string, repoClass string) ([]string, error) {
 	var listOfRepositories []string
 	listOption := &github.RepositoryListByOrgOptions{
 		ListOptions: github.ListOptions{
 			PerPage: 20,
 		},
+		Type: repoClass,
 	}
 	for {
 		repositories, response, err :=
