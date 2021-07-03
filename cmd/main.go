@@ -17,20 +17,21 @@
 package main
 
 import (
-	"github.com/google/go-github/v33/github"
-	client2 "hyperledger-updates/internal/pkg/client"
-	"hyperledger-updates/internal/pkg/configs"
-	"hyperledger-updates/internal/pkg/utils"
+	client2 "github-updates/internal/pkg/client"
+	"github-updates/internal/pkg/configs"
+	"github-updates/internal/pkg/utils"
 	"log"
 	"os"
 	"path"
 	"path/filepath"
 	"sort"
+
+	"github.com/google/go-github/v33/github"
 )
 
 var AppVersion = ""
 
-const AppName = "Hyperledger Updates"
+const AppName = "GitHub Updates"
 
 func init() {
 	if AppVersion == "" {

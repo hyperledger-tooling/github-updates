@@ -146,5 +146,5 @@ You may optionally build and run the tool as
 
 ```bash
 make
-./hyperledger-updates
+./github-updates
 ```

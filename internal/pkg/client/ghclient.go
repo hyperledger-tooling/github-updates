@@ -19,8 +19,8 @@ package client
 import (
 	ctx "context"
 	"errors"
-	"hyperledger-updates/internal/pkg/configs"
-	"hyperledger-updates/internal/pkg/utils"
+	"github-updates/internal/pkg/configs"
+	"github-updates/internal/pkg/utils"
 	"log"
 	"net/http"
 	"time"

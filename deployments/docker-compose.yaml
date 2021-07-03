@@ -15,11 +15,11 @@
 version: "3.6"
 
 services:
-  hyperledger-updates:
+  github-updates:
     build:
       context: ..
       dockerfile: Dockerfile
-    container_name: hyperledger-updates
+    container_name: github-updates
     environment:
       - GITHUB_TOKEN=${GITHUB_TOKEN}
       - CONFIG_FILE=/appbin/config.yaml

@@ -17,10 +17,11 @@
 package configs
 
 import (
-	"gopkg.in/yaml.v2"
-	"hyperledger-updates/internal/pkg/utils"
+	"github-updates/internal/pkg/utils"
 	"io/ioutil"
 	"log"
+
+	"gopkg.in/yaml.v2"
 )
 
 // Configuration reads the input config file

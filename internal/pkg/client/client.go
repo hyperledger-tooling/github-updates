@@ -16,7 +16,7 @@
 
 package client
 
-import "hyperledger-updates/internal/pkg/configs"
+import "github-updates/internal/pkg/configs"
 
 // GHClientInterface is for testing
 type GHClientInterface interface {
