@@ -66,6 +66,7 @@ type GlobalConfiguration struct {
 	Organizations    []Organization   `yaml:"organizations"`
 	DaysCount        int              `yaml:"scrape-duration-days"`
 	ExternalTemplate ExternalTemplate `yaml:"external-template"`
+	RepoClass        string           `yaml:"scrape-repo-class"`
 }
 
 type ExternalTemplate struct {

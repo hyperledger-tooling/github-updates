@@ -21,6 +21,7 @@ global:
         name: "Hyperledger Labs"
         github: "hyperledger-labs"
   scrape-duration-days: 7
+  scrape-repo-class: public
   external-template:
     enabled: false
     # Possible values "repository"
