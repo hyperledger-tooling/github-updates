@@ -17,8 +17,8 @@
 package configs
 
 import (
+	"github-updates/internal/pkg/utils"
 	"gopkg.in/yaml.v2"
-	"hyperledger-updates/internal/pkg/utils"
 	"io/ioutil"
 	"log"
 )

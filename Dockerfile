@@ -22,9 +22,9 @@ COPY . /app
 RUN make
 
 WORKDIR /appbin
-RUN cp /app/hyperledger-updates /appbin/
+RUN cp /app/github-updates /appbin/
 RUN rm -r /app
 
 ENV PATH=${PATH}:/appbin
 
-CMD ["hyperledger-updates"]
+CMD ["github-updates"]
