@@ -7,10 +7,10 @@ format_output=$(shell gofmt -l .)
 all: clean build
 
 clean:
-	rm -f hyperledger-updates
+	rm -f github-updates
 
 build: lint-check unit-test
-	go build -o hyperledger-updates $(LDFLAGS) ./cmd
+	go build -o github-updates $(LDFLAGS) ./cmd
 
 unit-test:
 	CGO_ENABLED=0 go test -v ./...

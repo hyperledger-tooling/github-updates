@@ -3,7 +3,7 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
-hyperledger-updates
+github-updates
 .idea
 
 # Ignore generated files

@@ -1,4 +1,4 @@
-module hyperledger-updates
+module github-updates
 
 go 1.15
 
