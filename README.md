@@ -1,4 +1,4 @@
-# HYPERLEDGER UPDATES
+# GITHUB UPDATES
 
 The tool will assist in getting the PRs curated for the weekly developer
 newsletter sent by Hyperledger. The tool will print list of all PRs from
