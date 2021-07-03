@@ -134,6 +134,20 @@ GITHUB_TOKEN
 CONFIG_FILE
 ```
 
+## Development
+
+As a developer if you would like to use container environment, run the following command
+
+```bash
+docker-compose -f build/docker-compose-build.yaml up github-updates-make
+```
+
+If you get an error for lint checks, run the following command
+
+```bash
+docker-compose -f build/docker-compose-build.yaml up github-updates-format
+```
+
 ## Run
 
 Prefer to run it as a container, run the following command
