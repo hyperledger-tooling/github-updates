@@ -108,3 +108,32 @@ a {
     letter-spacing: 1px;
     margin-top: 12px;
 }
+
+.pr-list > li > h1 {
+    display: inline;
+}
+
+.thumbnail {
+    display: inline-block;
+    padding: 2px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    height: 35px;
+    width: 35px;
+    border-radius: 50%;
+}
+
+div.thumbnail-container {
+    padding-top: 10px;
+}
+
+div.thumbnail img {
+    height: inherit;
+    width: inherit;
+    vertical-align: middle;
+    border-radius: 50%;
+}
+
+.label {
+    font-weight: 600 !important;
+}

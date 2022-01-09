@@ -39,14 +39,17 @@
                 <ol class="pr-list">
                     {{range .Releases}}
                     <li>
-                        <h3>{{.Name}}</h3>
-                        <div>Author: {{.Author.Login}}</div>
-                        <img src="{{.Author.AvatarURL}}"/>
-                        <div>Created At: {{.CreatedAt}}</div>
-                        <div>Published At: {{.PublishedAt}}</div>
-                        <div>Summary:</div>
+                        <h1>{{.Name}}</h1>
+                        <div class="thumbnail-container">
+                            <div class="thumbnail">
+                                <img src="{{.Author.AvatarURL}}"/>
+                            </div>
+                            <span class="label">{{.Author.Login}} </span> published this at
+                            <span class="label"> {{.PublishedAt}}</span>
+                        </div>
+                        <h4>Summary:</h4>
                         <p>{{.Body}}</p>
-                        <div><a href={{.HTMLURL}}>{{.TagName}}</a></div>
+                        <div>More details at: <a href={{.HTMLURL}}>{{.TagName}}</a></div>
                     </li>
                     <br />
                     {{end}}
