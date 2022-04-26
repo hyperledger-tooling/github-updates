@@ -18,10 +18,9 @@ package configs
 
 import (
 	"github-updates/internal/pkg/utils"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
-
-	"gopkg.in/yaml.v2"
 )
 
 // Configuration reads the input config file
@@ -30,6 +29,7 @@ type Configuration struct {
 	Issues              IssueConfiguration       `yaml:"issues"`
 	PullRequests        PullRequestConfiguration `yaml:"pull-requests"`
 	Releases            ReleaseConfiguration     `yaml:"releases"`
+	Contributors        ContributorConfiguration `yaml:"contributors"`
 }
 
 type IssueConfiguration struct {
@@ -53,6 +53,13 @@ type ReleaseConfiguration struct {
 	ReleaseReportShouldRun  bool                    `yaml:"should-run"`
 	ReleaseDataFile         string                  `yaml:"data-file"`
 	ReleaseExternalTemplate ElementExternalTemplate `yaml:"external-template"`
+}
+
+type ContributorConfiguration struct {
+	ContributorSummaryFileName  string                  `yaml:"summary-filename"`
+	ContributorReportShouldRun  bool                    `yaml:"should-run"`
+	ContributorDataFile         string                  `yaml:"data-file"`
+	ContributorExternalTemplate ElementExternalTemplate `yaml:"external-template"`
 }
 
 type ElementExternalTemplate struct {

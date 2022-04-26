@@ -21,12 +21,11 @@ import (
 	"errors"
 	"github-updates/internal/pkg/configs"
 	"github-updates/internal/pkg/utils"
+	"github.com/google/go-github/v33/github"
+	"golang.org/x/oauth2"
 	"log"
 	"net/http"
 	"time"
-
-	"github.com/google/go-github/v33/github"
-	"golang.org/x/oauth2"
 )
 
 // Client is the custom handler for all requests
@@ -285,6 +284,52 @@ func (c Client) IssueWithLabels(org string, repos []string, issueLabels []string
 		}
 	}
 	return issueList, nil
+}
+
+// ListPRs returns the list of PRs for a given organization and repository
+func (c Client) ListContributors(org string, repos []string) ([]configs.ContributorList, error) {
+	contributorListOptions := &github.ListContributorsOptions{
+		Anon: "1",
+		ListOptions: github.ListOptions{
+			PerPage: 20,
+		},
+	}
+	var contributors []configs.ContributorList
+
+	for _, repo := range repos {
+		var listOfContributors []github.Contributor
+		for {
+			contributorsList, response, err := c.Client.Repositories.ListContributors(c.Context, org, repo, contributorListOptions) // Client.contributors.List(c.Context, org, repo, contributorListOptions)
+			if err != nil {
+				return nil, err
+			}
+			log.Printf("Response: %v", response)
+			if response.StatusCode != http.StatusOK {
+				return nil, errors.New("could not get the response")
+			}
+
+			for _, contributor := range contributorsList {
+				listOfContributors = append(listOfContributors, *contributor)
+			}
+			if response.NextPage == 0 {
+				log.Println("Breaking from the loop of repositories - Contributers")
+				break
+			}
+			// assign next page
+			contributorListOptions.Page = response.NextPage
+
+		}
+		if len(listOfContributors) != 0 {
+			contributerElement := configs.ContributorList{
+				Repository:   repo,
+				Contributors: listOfContributors,
+			}
+			contributors = append(contributors, contributerElement)
+		}
+
+	}
+	return contributors, nil
+
 }
 
 /**

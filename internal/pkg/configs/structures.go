@@ -43,6 +43,12 @@ type ExternalReleaseDetails struct {
 	Releases     []github.RepositoryRelease
 }
 
+type ExternalContributorDetails struct {
+	Organization OrganizationStructure
+	Repository   RepositoryStructure
+	Contributors []github.Contributor
+}
+
 // PullRequestDetails contains organization name
 // and PrLists
 type PullRequestDetails struct {
@@ -67,6 +73,11 @@ type IssueDetails struct {
 	IssueLists   []IssueList `json:"issueLists,omitempty"`
 }
 
+type ContributorDetails struct {
+	Organization     string            `json:"organization,omitempty"`
+	ContributorLists []ContributorList `json:"contributorLists,omitempty"`
+}
+
 type ReleaseList struct {
 	Repository string                     `json:"repository,omitempty"`
 	Releases   []github.RepositoryRelease `json:"releases,omitempty"`
@@ -76,4 +87,9 @@ type IssueList struct {
 	Repository string         `json:"repository,omitempty"`
 	Labels     []string       `json:"labels,omitempty"`
 	Issues     []github.Issue `json:"issues,omitempty"`
+}
+
+type ContributorList struct {
+	Repository   string               `json:"repository,omitempty"`
+	Contributors []github.Contributor `json:"issues,omitempty"`
 }

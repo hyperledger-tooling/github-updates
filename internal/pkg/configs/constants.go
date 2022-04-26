@@ -27,10 +27,14 @@ const (
 	ReleaseSummaryFilePath = "RELEASE_SUMMARY_FILE_PATH"
 	// IssueSummaryFilePath env variable
 	IssueSummaryFilePath = "ISSUE_SUMMARY_FILE_PATH"
+	// ContributorSummaryFilePath env variable
+	ContributorSummaryFilePath = "CONTRIBUTOR_SUMMARY_FILE_PATH"
 	// PRTemplateFile env variable
 	PRTemplateFile = "PR_TEMPLATE_FILE"
 	// ReleaseTemplateFile env variable
 	ReleaseTemplateFile = "RELEASE_TEMPLATE_FILE"
 	// IssueTemplateFile env variable
 	IssueTemplateFile = "ISSUE_TEMPLATE_FILE"
+	// ContributorTemplateFile env variable
+	ContributorTemplateFile = "CONTRIBUTOR_TEMPLATE_FILE"
 )

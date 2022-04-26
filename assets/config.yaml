@@ -33,9 +33,9 @@ issues:
     - "good first issue"
     - "help wanted"
   created-history-days: 100
-  summary-filename: "html/generated/issue-summary.html"
+  summary-filename: "assets/html/generated/issue-summary.html"
   should-run: true
-  data-file: "generated-data/issue-data.json"
+  data-file: "assets/generated-data/issue-data.json"
   external-template:
     input: ""
     output: ""
@@ -44,9 +44,9 @@ issues:
 
 # Config for Pull Requests
 pull-requests:
-  summary-filename: "html/generated/pr-summary.html"
+  summary-filename: "assets/html/generated/pr-summary.html"
   should-run: true
-  data-file: "generated-data/pr-data.json"
+  data-file: "assets/generated-data/pr-data.json"
   external-template:
     input: ""
     output: ""
@@ -55,9 +55,20 @@ pull-requests:
 
 # Config for Releases
 releases:
-  summary-filename: "html/generated/release-summary.html"
+  summary-filename: "assets/html/generated/release-summary.html"
   should-run: true
-  data-file: "generated-data/release-data.json"
+  data-file: "assets/generated-data/release-data.json"
+  external-template:
+    input: ""
+    output: ""
+    summary: ""
+    sum-generated: ""
+
+# Config for Contributors
+contributors:
+  summary-filename: "assets/html/generated/contributor-summary.html"
+  should-run: true
+  data-file: "assets/generated-data/contributor-data.json"
   external-template:
     input: ""
     output: ""

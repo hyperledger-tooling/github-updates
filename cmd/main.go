@@ -46,13 +46,13 @@ func main() {
 	client := client2.NewClient()
 	log.Println("Listing repositories for each organization")
 
-	expectedPrList, orgReleasesList, issueList, errorOccurred :=
+	expectedPrList, orgReleasesList, issueList, contributorList, errorOccurred :=
 		getExpectedReportsLists(config, client)
 	if errorOccurred {
 		return
 	}
-	externalPRList, externalReleaseList, externalIssueList :=
-		getExternalReports(config, expectedPrList, orgReleasesList, issueList)
+	externalPRList, externalReleaseList, externalIssueList, externalContributorList :=
+		getExternalReports(config, expectedPrList, orgReleasesList, issueList, contributorList)
 	var reportFilePath, templateFilePath string
 	var err error
 
@@ -63,7 +63,7 @@ func main() {
 				configs.PrSummaryFilePath,
 				config.PullRequests.PRSummaryFileName,
 			)
-		templateFilePath = utils.GetEnvOrDefault(configs.PRTemplateFile, "html/template/pr-template.html")
+		templateFilePath = utils.GetEnvOrDefault(configs.PRTemplateFile, "assets/html/template/pr-template.html")
 		err =
 			generateReport(
 				config.PullRequests.PRDataFile,
@@ -92,7 +92,7 @@ func main() {
 				configs.ReleaseSummaryFilePath,
 				config.Releases.ReleaseSummaryFileName,
 			)
-		templateFilePath = utils.GetEnvOrDefault(configs.ReleaseTemplateFile, "html/template/release-template.html")
+		templateFilePath = utils.GetEnvOrDefault(configs.ReleaseTemplateFile, "assets/html/template/release-template.html")
 		err =
 			generateReport(
 				config.Releases.ReleaseDataFile,
@@ -121,7 +121,7 @@ func main() {
 				configs.IssueSummaryFilePath,
 				config.Issues.IssueSummaryFileName,
 			)
-		templateFilePath = utils.GetEnvOrDefault(configs.IssueTemplateFile, "html/template/issue-template.html")
+		templateFilePath = utils.GetEnvOrDefault(configs.IssueTemplateFile, "assets/html/template/issue-template.html")
 		err =
 			generateReport(
 				config.Issues.IssueDataFile,
@@ -140,6 +140,35 @@ func main() {
 		if err != nil {
 			log.Fatalf("Failed to generate the report: %v, with template: %v. Error is: %v",
 				config.Issues.IssueExternalTemplate.Output, config.Issues.IssueExternalTemplate.Input, err)
+		}
+	}
+
+	if config.Contributors.ContributorReportShouldRun {
+		// Save contributors into a file
+		reportFilePath =
+			utils.GetEnvOrDefault(
+				configs.ContributorSummaryFilePath,
+				config.Contributors.ContributorSummaryFileName,
+			)
+		templateFilePath = utils.GetEnvOrDefault(configs.ContributorTemplateFile, "assets/html/template/contributor-template.html")
+		err =
+			generateReport(
+				config.Contributors.ContributorDataFile,
+				contributorList,
+				reportFilePath,
+				templateFilePath,
+			)
+		if err != nil {
+			log.Fatalf("Err: %v", err)
+		}
+		err =
+			generateExternalContributor(
+				config.Contributors.ContributorExternalTemplate,
+				externalContributorList,
+			)
+		if err != nil {
+			log.Fatalf("Failed to generate the report: %v, with template: %v. Error is: %v",
+				config.Contributors.ContributorExternalTemplate.Output, config.Contributors.ContributorExternalTemplate.Input, err)
 		}
 	}
 }
@@ -162,11 +191,13 @@ func getExternalReports(config configs.Configuration,
 	expectedPrList []configs.PullRequestDetails,
 	orgReleasesList []configs.ReleaseDetails,
 	issueList []configs.IssueDetails,
-) ([]configs.ExternalPRDetails, []configs.ExternalReleaseDetails, []configs.ExternalIssueDetails) {
+	contributorList []configs.ContributorDetails,
+) ([]configs.ExternalPRDetails, []configs.ExternalReleaseDetails, []configs.ExternalIssueDetails, []configs.ExternalContributorDetails) {
 	if !config.GlobalConfiguration.ExternalTemplate.Enabled {
 		return []configs.ExternalPRDetails{},
 			[]configs.ExternalReleaseDetails{},
-			[]configs.ExternalIssueDetails{}
+			[]configs.ExternalIssueDetails{},
+			[]configs.ExternalContributorDetails{}
 	}
 	var externalPRDetails []configs.ExternalPRDetails
 	for _, org := range expectedPrList {
@@ -231,7 +262,28 @@ func getExternalReports(config configs.Configuration,
 			externalIssueDetails = append(externalIssueDetails, elementIssue)
 		}
 	}
-	return externalPRDetails, externalReleaseDetails, externalIssueDetails
+	var externalContributorDetails []configs.ExternalContributorDetails
+	for _, org := range contributorList {
+		organization := getOrg(
+			config.GlobalConfiguration.Organizations,
+			org.Organization,
+		)
+		for _, repo := range org.ContributorLists {
+			elementContributor := configs.ExternalContributorDetails{
+				Organization: configs.OrganizationStructure{
+					Github: org.Organization,
+					Name:   organization.Name,
+				},
+				Repository: configs.RepositoryStructure{
+					Name: repo.Repository,
+					Link: "https://github.com/" + org.Organization + "/" + repo.Repository,
+				},
+				Contributors: repo.Contributors,
+			}
+			externalContributorDetails = append(externalContributorDetails, elementContributor)
+		}
+	}
+	return externalPRDetails, externalReleaseDetails, externalIssueDetails, externalContributorDetails
 }
 
 func generateExternalPR(
@@ -309,6 +361,31 @@ func generateExternalRelease(
 	return generateTopFile(recentReleases(values), externalTemplate)
 }
 
+func generateExternalContributor(
+	externalTemplate configs.ElementExternalTemplate,
+	values []configs.ExternalContributorDetails,
+) error {
+	if len(values) == 0 {
+		log.Println("External template file generation is not requested")
+		return nil
+	}
+	for _, value := range values {
+		err :=
+			generateExternalFile(
+				value,
+				value.Repository.Name,
+				value.Organization.Github,
+				externalTemplate,
+			)
+		if err != nil {
+			return err
+		}
+	}
+
+	// store the trending info in summary file
+	return generateTopFile(values, externalTemplate)
+}
+
 func generateExternalFile(
 	value interface{},
 	filename string,
@@ -318,7 +395,7 @@ func generateExternalFile(
 	var err error
 	outputFileName := filename + filepath.Ext(externalTemplate.Input)
 	outputPath := path.Join(externalTemplate.Output, org)
-	err = os.MkdirAll(outputPath, 755)
+	err = os.MkdirAll(outputPath, 0755)
 	if err != nil {
 		return err
 	}
@@ -365,17 +442,18 @@ func generateReport(
 func getExpectedReportsLists(
 	config configs.Configuration,
 	client client2.GHClientInterface,
-) ([]configs.PullRequestDetails, []configs.ReleaseDetails, []configs.IssueDetails, bool) {
+) ([]configs.PullRequestDetails, []configs.ReleaseDetails, []configs.IssueDetails, []configs.ContributorDetails, bool) {
 	var expectedPrList []configs.PullRequestDetails
 	var orgReleasesList []configs.ReleaseDetails
 	var issueList []configs.IssueDetails
+	var contributorList []configs.ContributorDetails
 
 	for _, organization := range config.GlobalConfiguration.Organizations {
 
 		repos, err := client.ListRepositories(organization.Organization.Github, config.GlobalConfiguration.RepoClass)
 		if err != nil {
 			log.Fatalf("Err: %v", err)
-			return nil, nil, nil, true
+			return nil, nil, nil, nil, true
 		}
 		log.Printf("List for %v is : %v", organization, repos)
 
@@ -384,7 +462,7 @@ func getExpectedReportsLists(
 			expectedPrs, errorOccurred :=
 				getExpectedPullRequests(client, organization, repos, config)
 			if errorOccurred {
-				return nil, nil, nil, errorOccurred
+				return nil, nil, nil, nil, errorOccurred
 			}
 			expectedPrList = append(expectedPrList, expectedPrs)
 		}
@@ -394,7 +472,7 @@ func getExpectedReportsLists(
 			releaseList, errorOccurred :=
 				getReleaseList(client, organization, repos, config)
 			if errorOccurred {
-				return nil, nil, nil, errorOccurred
+				return nil, nil, nil, nil, errorOccurred
 			}
 			orgReleasesList = append(orgReleasesList, releaseList)
 		}
@@ -404,12 +482,22 @@ func getExpectedReportsLists(
 			expectedIssues, errorOccurred :=
 				getIssueList(client, organization, repos, config)
 			if errorOccurred {
-				return nil, nil, nil, errorOccurred
+				return nil, nil, nil, nil, errorOccurred
 			}
 			issueList = append(issueList, expectedIssues)
 		}
+
+		if config.Contributors.ContributorReportShouldRun {
+			//contributors
+			contributors, errorOccurred :=
+				getContributorList(client, organization, repos, config)
+			if errorOccurred {
+				return nil, nil, nil, nil, errorOccurred
+			}
+			contributorList = append(contributorList, contributors)
+		}
 	}
-	return expectedPrList, orgReleasesList, issueList, false
+	return expectedPrList, orgReleasesList, issueList, contributorList, false
 }
 
 func getReleaseList(
@@ -480,6 +568,28 @@ func getExpectedPullRequests(
 		PrRepoLists:  pRs,
 	}
 	return expectedPrs, false
+}
+
+func getContributorList(
+	client client2.GHClientInterface,
+	organization configs.Organization,
+	contributors []string,
+	config configs.Configuration,
+) (configs.ContributorDetails, bool) {
+	orgContributors, err :=
+		client.ListContributors(
+			organization.Organization.Github,
+			contributors,
+		)
+	if err != nil {
+		log.Fatalf("Err: %v", err)
+		return configs.ContributorDetails{}, true
+	}
+	contributorList := configs.ContributorDetails{
+		Organization:     organization.Organization.Github,
+		ContributorLists: orgContributors,
+	}
+	return contributorList, false
 }
 
 func recentPRs(prs []configs.ExternalPRDetails) []github.PullRequest {

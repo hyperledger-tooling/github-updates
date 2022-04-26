@@ -26,6 +26,7 @@ services:
       - PR_TEMPLATE_FILE=/appbin/html/template/pr-template.html
       - RELEASE_TEMPLATE_FILE=/appbin/html/template/release-template.html
       - ISSUE_TEMPLATE_FILE=/appbin/html/template/issue-template.html
+      - CONTRIBUTOR_TEMPLATE_FILE=/appbin/html/template/contributor-template.html
     volumes:
       - ../assets/html:/appbin/html
       - ../assets/generated-data:/appbin/generated-data
